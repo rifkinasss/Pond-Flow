@@ -24,7 +24,7 @@ import { createClient } from "@/shared/lib/supabase/client";
 
 const loginSchema = z.object({
   email: z.string().email("Format email tidak valid"),
-  password: z.string().min(6, "Password minimal 6 karakter"),
+  password: z.string().min(8, "Password minimal 8 karakter"),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;

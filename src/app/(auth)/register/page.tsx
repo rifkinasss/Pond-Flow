@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, CheckCircle2, Circle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,11 +22,17 @@ import {
 } from "@/components/ui/card";
 import { createClient } from "@/shared/lib/supabase/client";
 
+const passwordSchema = z
+  .string()
+  .min(8, "Password minimal 8 karakter")
+  .regex(/[A-Z]/, "Harus mengandung minimal 1 huruf kapital")
+  .regex(/[0-9]/, "Harus mengandung minimal 1 angka");
+
 const registerSchema = z
   .object({
     displayName: z.string().min(2, "Nama minimal 2 karakter"),
     email: z.string().email("Format email tidak valid"),
-    password: z.string().min(8, "Password minimal 8 karakter"),
+    password: passwordSchema,
     confirmPassword: z.string(),
   })
   .refine((d) => d.password === d.confirmPassword, {
@@ -36,6 +42,29 @@ const registerSchema = z
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
+function PasswordRequirements({ password }: { password: string }) {
+  const rules = [
+    { label: "Minimal 8 karakter", met: password.length >= 8 },
+    { label: "1 huruf kapital (A-Z)", met: /[A-Z]/.test(password) },
+    { label: "1 angka (0-9)", met: /[0-9]/.test(password) },
+  ];
+  if (!password) return null;
+  return (
+    <ul className="space-y-1 mt-1.5">
+      {rules.map((r) => (
+        <li key={r.label} className="flex items-center gap-1.5 text-xs">
+          {r.met
+            ? <CheckCircle2 size={12} className="text-green-500 shrink-0" />
+            : <Circle size={12} className="text-muted-foreground shrink-0" />}
+          <span className={r.met ? "text-green-600" : "text-muted-foreground"}>
+            {r.label}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function RegisterPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
@@ -43,6 +72,7 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -115,7 +145,7 @@ export default function RegisterPage() {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Minimal 8 karakter"
+                placeholder="Min. 8 karakter, 1 kapital, 1 angka"
                 autoComplete="new-password"
                 className="pr-10"
                 {...register("password")}
@@ -128,6 +158,7 @@ export default function RegisterPage() {
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
+            <PasswordRequirements password={watch("password") ?? ""} />
             {errors.password && (
               <p className="text-xs text-destructive">
                 {errors.password.message}
