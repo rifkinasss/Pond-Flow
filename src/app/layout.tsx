@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/shared/components/providers/theme-provider";
+import { LanguageProvider } from "@/shared/i18n/LanguageContext";
+import { RegisterServiceWorker } from "@/shared/components/providers/RegisterServiceWorker";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -22,6 +25,11 @@ export const metadata: Metadata = {
   },
   description: "Manajemen keuangan & HPP budidaya ikan — NasLabs.id",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/icons/icon-192.png",
+    apple: "/icons/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -49,8 +57,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background font-sans`}
       >
-        {children}
-        <Toaster richColors position="top-right" />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <LanguageProvider>
+            <RegisterServiceWorker />
+            {children}
+            <Toaster richColors position="top-right" />
+          </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

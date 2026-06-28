@@ -6,26 +6,35 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
-      profiles: {
+      ponds: {
         Row: {
           id: string;
-          display_name: string | null;
-          avatar_url: string | null;
+          farm_id: string;
+          name: string;
+          type: string;
+          description: string | null;
           created_at: string;
         };
         Insert: {
-          id: string;
-          display_name?: string | null;
-          avatar_url?: string | null;
+          id?: string;
+          farm_id: string;
+          name: string;
+          type: string;
+          description?: string | null;
           created_at?: string;
         };
         Update: {
-          display_name?: string | null;
-          avatar_url?: string | null;
+          id?: string;
+          farm_id?: string;
+          name?: string;
+          type?: string;
+          description?: string | null;
+          created_at?: string;
         };
+        Relationships: [];
       };
       farms: {
         Row: {
@@ -34,6 +43,8 @@ export interface Database {
           name: string;
           address: string | null;
           description: string | null;
+          latitude: number | null;
+          longitude: number | null;
           created_at: string;
         };
         Insert: {
@@ -42,323 +53,223 @@ export interface Database {
           name: string;
           address?: string | null;
           description?: string | null;
+          latitude?: number | null;
+          longitude?: number | null;
           created_at?: string;
         };
         Update: {
+          id?: string;
+          user_id?: string;
           name?: string;
           address?: string | null;
           description?: string | null;
-        };
-      };
-      ponds: {
-        Row: {
-          id: string;
-          farm_id: string;
-          name: string;
-          type: "tanah" | "terpal" | "beton" | "keramba";
-          size_m2: number | null;
-          capacity_kg: number | null;
-          status: "active" | "inactive";
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          farm_id: string;
-          name: string;
-          type: "tanah" | "terpal" | "beton" | "keramba";
-          size_m2?: number | null;
-          capacity_kg?: number | null;
-          status?: "active" | "inactive";
+          latitude?: number | null;
+          longitude?: number | null;
           created_at?: string;
         };
-        Update: {
-          name?: string;
-          type?: "tanah" | "terpal" | "beton" | "keramba";
-          size_m2?: number | null;
-          capacity_kg?: number | null;
-          status?: "active" | "inactive";
-        };
+        Relationships: [];
       };
-      cycles: {
+      pond_cycles: {
         Row: {
           id: string;
           pond_id: string;
           fish_type: string;
-          seed_count: number | null;
-          seed_weight_gram: number | null;
-          seed_price_per_unit: number | null;
+          initial_stock: number;
+          current_stock: number;
+          status: "active" | "harvested";
           start_date: string;
-          target_harvest_date: string | null;
-          status: "active" | "harvested" | "failed";
-          notes: string | null;
+          target_days: number | null;
+          harvest_date: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
           pond_id: string;
           fish_type: string;
-          seed_count?: number | null;
-          seed_weight_gram?: number | null;
-          seed_price_per_unit?: number | null;
-          start_date: string;
-          target_harvest_date?: string | null;
-          status?: "active" | "harvested" | "failed";
-          notes?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          fish_type?: string;
-          seed_count?: number | null;
-          seed_weight_gram?: number | null;
-          seed_price_per_unit?: number | null;
+          initial_stock: number;
+          current_stock: number;
+          status?: "active" | "harvested";
           start_date?: string;
-          target_harvest_date?: string | null;
-          status?: "active" | "harvested" | "failed";
+          target_days?: number | null;
+          harvest_date?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          pond_id?: string;
+          fish_type?: string;
+          initial_stock?: number;
+          current_stock?: number;
+          status?: "active" | "harvested";
+          start_date?: string;
+          target_days?: number | null;
+          harvest_date?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      harvests: {
+        Row: {
+          id: string;
+          cycle_id: string;
+          amount_harvested: number;
+          weight_kg: number | null;
+          harvest_type: "partial" | "final";
+          harvest_date: string;
+          notes: string | null;
+        };
+        Insert: {
+          id?: string;
+          cycle_id: string;
+          amount_harvested: number;
+          weight_kg?: number | null;
+          harvest_type: "partial" | "final";
+          harvest_date?: string;
           notes?: string | null;
         };
+        Update: {
+          id?: string;
+          cycle_id?: string;
+          amount_harvested?: number;
+          weight_kg?: number | null;
+          harvest_type?: "partial" | "final";
+          harvest_date?: string;
+          notes?: string | null;
+        };
+        Relationships: [];
       };
       expenses: {
         Row: {
           id: string;
+          user_id: string;
           farm_id: string;
           pond_id: string | null;
-          cycle_id: string | null;
           category: string;
-          item_name: string;
-          quantity: number;
-          unit: string;
-          price_per_unit: number;
-          total_amount: number;
-          date: string;
-          notes: string | null;
-          is_deleted: boolean;
+          amount: number;
+          expense_date: string;
+          description: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
+          user_id?: string;
           farm_id: string;
           pond_id?: string | null;
-          cycle_id?: string | null;
           category: string;
-          item_name: string;
-          quantity: number;
-          unit: string;
-          price_per_unit: number;
-          date: string;
-          notes?: string | null;
-          is_deleted?: boolean;
+          amount: number;
+          expense_date?: string;
+          description?: string | null;
           created_at?: string;
         };
         Update: {
-          category?: string;
-          item_name?: string;
-          quantity?: number;
-          unit?: string;
-          price_per_unit?: number;
-          date?: string;
-          notes?: string | null;
-          is_deleted?: boolean;
-        };
-      };
-      incomes: {
-        Row: {
-          id: string;
-          farm_id: string;
-          cycle_id: string | null;
-          type: "harvest" | "other";
-          harvest_weight_kg: number | null;
-          price_per_kg: number | null;
-          total_amount: number;
-          buyer: string | null;
-          date: string;
-          notes: string | null;
-          is_deleted: boolean;
-          created_at: string;
-        };
-        Insert: {
           id?: string;
-          farm_id: string;
-          cycle_id?: string | null;
-          type?: "harvest" | "other";
-          harvest_weight_kg?: number | null;
-          price_per_kg?: number | null;
-          total_amount: number;
-          buyer?: string | null;
-          date: string;
-          notes?: string | null;
-          is_deleted?: boolean;
+          user_id?: string;
+          farm_id?: string;
+          pond_id?: string | null;
+          category?: string;
+          amount?: number;
+          expense_date?: string;
+          description?: string | null;
           created_at?: string;
         };
-        Update: {
-          type?: "harvest" | "other";
-          harvest_weight_kg?: number | null;
-          price_per_kg?: number | null;
-          total_amount?: number;
-          buyer?: string | null;
-          date?: string;
-          notes?: string | null;
-          is_deleted?: boolean;
-        };
+        Relationships: [];
       };
       inventory_items: {
         Row: {
           id: string;
+          user_id: string;
           farm_id: string;
           name: string;
-          category: "feed" | "medicine" | "equipment" | "other";
+          category: string;
+          stock_quantity: number;
           unit: string;
-          current_stock: number;
-          minimum_stock: number;
-          price_per_unit: number | null;
-          last_updated: string;
+          unit_price: number | null;
+          min_stock_alert: number;
+          description: string | null;
+          created_at: string;
         };
         Insert: {
           id?: string;
+          user_id?: string;
           farm_id: string;
           name: string;
-          category: "feed" | "medicine" | "equipment" | "other";
-          unit: string;
-          current_stock?: number;
-          minimum_stock?: number;
-          price_per_unit?: number | null;
-          last_updated?: string;
+          category: string;
+          stock_quantity?: number;
+          unit?: string;
+          unit_price?: number | null;
+          min_stock_alert?: number;
+          description?: string | null;
+          created_at?: string;
         };
         Update: {
+          id?: string;
+          user_id?: string;
+          farm_id?: string;
           name?: string;
-          category?: "feed" | "medicine" | "equipment" | "other";
+          category?: string;
+          stock_quantity?: number;
           unit?: string;
-          current_stock?: number;
-          minimum_stock?: number;
-          price_per_unit?: number | null;
+          unit_price?: number | null;
+          min_stock_alert?: number;
+          description?: string | null;
+          created_at?: string;
         };
+        Relationships: [];
       };
-      inventory_transactions: {
+      feeding_logs: {
         Row: {
           id: string;
-          item_id: string;
-          type: "in" | "out";
-          quantity: number;
-          reference_id: string | null;
-          date: string;
+          cycle_id: string;
+          inventory_item_id: string | null;
+          feed_time: string;
+          amount_kg: number;
+          unit_price: number;
+          total_cost: number;
           notes: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
-          item_id: string;
-          type: "in" | "out";
-          quantity: number;
-          reference_id?: string | null;
-          date: string;
+          cycle_id: string;
+          inventory_item_id?: string | null;
+          feed_time?: string;
+          amount_kg: number;
+          unit_price?: number;
+          total_cost?: number;
           notes?: string | null;
           created_at?: string;
         };
         Update: {
-          quantity?: number;
+          id?: string;
+          cycle_id?: string;
+          inventory_item_id?: string | null;
+          feed_time?: string;
+          amount_kg?: number;
+          unit_price?: number;
+          total_cost?: number;
           notes?: string | null;
+          created_at?: string;
         };
-      };
-      harvest_reports: {
-        Row: {
-          id: string;
-          cycle_id: string;
-          total_expense: number;
-          total_income: number;
-          hpp_per_kg: number;
-          gross_profit: number;
-          margin_percent: number;
-          fcr: number | null;
-          generated_at: string;
-        };
-        Insert: {
-          id?: string;
-          cycle_id: string;
-          total_expense: number;
-          total_income: number;
-          hpp_per_kg: number;
-          gross_profit: number;
-          margin_percent: number;
-          fcr?: number | null;
-          generated_at?: string;
-        };
-        Update: {
-          total_expense?: number;
-          total_income?: number;
-          hpp_per_kg?: number;
-          gross_profit?: number;
-          margin_percent?: number;
-          fcr?: number | null;
-        };
-      };
-      ai_insights: {
-        Row: {
-          id: string;
-          cycle_id: string;
-          harvest_report_id: string | null;
-          composite_score: number;
-          grade: string;
-          flags: Json;
-          ai_analysis: string | null;
-          ai_recommendations: Json | null;
-          ai_model: string;
-          ai_generated_at: string | null;
-          used_fallback: boolean;
-          generated_at: string;
-        };
-        Insert: {
-          id?: string;
-          cycle_id: string;
-          harvest_report_id?: string | null;
-          composite_score: number;
-          grade: string;
-          flags: Json;
-          ai_analysis?: string | null;
-          ai_recommendations?: Json | null;
-          ai_model?: string;
-          ai_generated_at?: string | null;
-          used_fallback?: boolean;
-          generated_at?: string;
-        };
-        Update: {
-          composite_score?: number;
-          grade?: string;
-          flags?: Json;
-          ai_analysis?: string | null;
-          ai_recommendations?: Json | null;
-          ai_generated_at?: string | null;
-          used_fallback?: boolean;
-        };
+        Relationships: [];
       };
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
     Enums: {
-      pond_type: "tanah" | "terpal" | "beton" | "keramba";
-      cycle_status: "active" | "harvested" | "failed";
-      inventory_category: "feed" | "medicine" | "equipment" | "other";
-      transaction_type: "in" | "out";
-      income_type: "harvest" | "other";
+      [_ in never]: never;
     };
   };
-}
+};
 
-// Convenience type aliases
-export type Tables<T extends keyof Database["public"]["Tables"]> =
-  Database["public"]["Tables"][T]["Row"];
-
-export type TablesInsert<T extends keyof Database["public"]["Tables"]> =
-  Database["public"]["Tables"][T]["Insert"];
-
-export type TablesUpdate<T extends keyof Database["public"]["Tables"]> =
-  Database["public"]["Tables"][T]["Update"];
-
-export type Profile = Tables<"profiles">;
-export type Farm = Tables<"farms">;
-export type Pond = Tables<"ponds">;
-export type Cycle = Tables<"cycles">;
-export type Expense = Tables<"expenses">;
-export type Income = Tables<"incomes">;
-export type InventoryItem = Tables<"inventory_items">;
-export type InventoryTransaction = Tables<"inventory_transactions">;
-export type HarvestReport = Tables<"harvest_reports">;
-export type AiInsight = Tables<"ai_insights">;
+// ── Convenience row types ──────────────────────────────────────────────────
+export type Farm = Database["public"]["Tables"]["farms"]["Row"];
+export type Pond = Database["public"]["Tables"]["ponds"]["Row"];
+export type PondCycle = Database["public"]["Tables"]["pond_cycles"]["Row"];
+export type Harvest = Database["public"]["Tables"]["harvests"]["Row"];
+export type Expense = Database["public"]["Tables"]["expenses"]["Row"];
+export type InventoryItem = Database["public"]["Tables"]["inventory_items"]["Row"];
+export type FeedingLog = Database["public"]["Tables"]["feeding_logs"]["Row"];
