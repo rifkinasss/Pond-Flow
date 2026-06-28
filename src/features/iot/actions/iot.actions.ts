@@ -20,7 +20,7 @@ export async function createIotDevice(formData: FormData) {
       return { error: "Semua bidang wajib diisi" };
     }
 
-    const { data, error } = await supabase.from("iot_devices").insert({
+    const { data, error } = await (supabase.from("iot_devices") as any).insert({
       user_id: user.id,
       pond_id,
       device_code,
@@ -43,7 +43,7 @@ export async function triggerRemoteDispense(deviceId: string, pondId: string, cy
     const supabase = await createClient();
 
     // 1. Update device status to feeding
-    await supabase.from("iot_devices").update({
+    await (supabase.from("iot_devices") as any).update({
       status: "feeding",
       last_ping: new Date().toISOString(),
     }).eq("id", deviceId);
@@ -59,10 +59,10 @@ export async function triggerRemoteDispense(deviceId: string, pondId: string, cy
     const result = await recordFeeding(formData);
 
     // 3. Update device status back to online & reduce hopper level
-    const { data: dev } = await supabase.from("iot_devices").select("hopper_level").eq("id", deviceId).single();
+    const { data: dev } = await (supabase.from("iot_devices") as any).select("hopper_level").eq("id", deviceId).single();
     const newHopper = Math.max(0, (dev?.hopper_level || 100) - 5);
 
-    await supabase.from("iot_devices").update({
+    await (supabase.from("iot_devices") as any).update({
       status: "online",
       hopper_level: newHopper,
       last_ping: new Date().toISOString(),

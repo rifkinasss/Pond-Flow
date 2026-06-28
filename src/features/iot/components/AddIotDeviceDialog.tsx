@@ -47,14 +47,15 @@ export function AddIotDeviceDialog({ ponds, onAddDevice }: AddIotDeviceDialogPro
         setGeneratedApiKey(apiKey);
         toast.success("Perangkat IoT Feeder Berhasil Disimpan ke Database! 📡");
         if (res.data) {
+          const devData = res.data as any;
           onAddDevice({
-            id: res.data.id,
-            pond_id: res.data.pond_id,
+            id: devData.id,
+            pond_id: devData.pond_id,
             pond_name: pond.name,
-            device_code: res.data.device_code,
-            status: res.data.status || "online",
-            battery_level: res.data.battery_level ?? 100,
-            hopper_level: res.data.hopper_level ?? 100,
+            device_code: devData.device_code,
+            status: devData.status || "online",
+            battery_level: devData.battery_level ?? 100,
+            hopper_level: devData.hopper_level ?? 100,
             daily_dispensed_kg: 0,
           });
         }
