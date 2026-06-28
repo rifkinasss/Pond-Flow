@@ -252,6 +252,69 @@ export type Database = {
         };
         Relationships: [];
       };
+      iot_devices: {
+        Row: {
+          id: string;
+          user_id: string;
+          pond_id: string;
+          device_code: string;
+          status: string;
+          battery_level: number;
+          hopper_level: number;
+          last_ping: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          pond_id: string;
+          device_code: string;
+          status?: string;
+          battery_level?: number;
+          hopper_level?: number;
+          last_ping?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          pond_id?: string;
+          device_code?: string;
+          status?: string;
+          battery_level?: number;
+          hopper_level?: number;
+          last_ping?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      iot_feeding_schedules: {
+        Row: {
+          id: string;
+          device_id: string;
+          feed_time: string;
+          dispense_amount_grams: number;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          device_id: string;
+          feed_time: string;
+          dispense_amount_grams?: number;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          device_id?: string;
+          feed_time?: string;
+          dispense_amount_grams?: number;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -273,3 +336,5 @@ export type Harvest = Database["public"]["Tables"]["harvests"]["Row"];
 export type Expense = Database["public"]["Tables"]["expenses"]["Row"];
 export type InventoryItem = Database["public"]["Tables"]["inventory_items"]["Row"];
 export type FeedingLog = Database["public"]["Tables"]["feeding_logs"]["Row"];
+export type IotDeviceRow = Database["public"]["Tables"]["iot_devices"]["Row"];
+export type IotFeedingScheduleRow = Database["public"]["Tables"]["iot_feeding_schedules"]["Row"];
