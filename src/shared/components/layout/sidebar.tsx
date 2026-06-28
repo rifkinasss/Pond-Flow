@@ -117,6 +117,7 @@ export function Sidebar() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
+                    prefetch={true}
                     onClick={handleNavClick}
                     title={!sidebarOpen ? item.label : undefined}
                     className={cn(
