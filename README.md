@@ -62,3 +62,8 @@ Aplikasi Mobile & PWA manajemen keuangan budidaya ikan. Catat pengeluaran, pemas
 - 🤝 **B2B Hub Penjualan Panen (Marketplace)**: Menghubungkan langsung petambak yang siap panen dengan pembeli skala besar (B2B) untuk memotong rantai tengkulak.
 - 👥 **Akses Multi-Role (Owner & Staff)**: Hak akses terpisah di mana pemilik dapat melihat data keuangan sensitif, sementara staf lapangan hanya dapat menginput catatan harian pakan/kematian ikan.
 
+### 🗺️ Strategi Desain UX Navigasi Mobile (Skalabilitas Fitur)
+Mengingat batas maksimal navigasi bawah ponsel adalah 5 menu utama, perluasan fitur di atas akan diakomodasi melalui arsitektur informasi berikut:
+1. **Menu Hub "Lainnya" (More Tab)**: Mengganti tab ke-5 pada Bottom Nav menjadi pusat akses fitur sekunder (seperti sensor IoT, prakiraan cuaca, dan diagnosis penyakit AI) dalam bentuk menu grid yang teratur.
+2. **Sub-Kategorisasi Modul**: Menyatukan fitur-fitur operasional yang sejenis (contoh: kalkulator FCR dimasukkan ke tab Kolam, sedangkan ekspor laporan dimasukkan ke tab Keuangan).
+
