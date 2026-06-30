@@ -28,6 +28,18 @@ export default async function DashboardPage() {
   const now = new Date();
   const startOfMonthStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
 
+  // Generate chart data array for the last 6 months (initialized with 0)
+  const chartData: { monthIndex: number; year: number; expense: number; revenue: number }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    chartData.push({
+      monthIndex: d.getMonth(),
+      year: d.getFullYear(),
+      expense: 0,
+      revenue: 0,
+    });
+  }
+
   if (farmIds.length > 0) {
     // Fetch Ponds count
     const { data: pondsData } = await supabase
@@ -77,6 +89,69 @@ export default async function DashboardPage() {
         monthlyRevenue = harvestKg * 23000;
       }
     }
+  // 6-month historical calculations
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+  const startOfSixMonthsAgoStr = sixMonthsAgo.toISOString().split("T")[0];
+
+  let sixMonthExpensesData: any[] = [];
+  let sixMonthHarvestsData: any[] = [];
+
+  if (farmIds.length > 0) {
+    const { data: expData } = await supabase
+      .from("expenses")
+      .select("amount, expense_date")
+      .in("farm_id", farmIds)
+      .gte("expense_date", startOfSixMonthsAgoStr);
+    sixMonthExpensesData = expData ?? [];
+
+    if (totalPondsCount > 0) {
+      const { data: pondsData } = await supabase
+        .from("ponds")
+        .select("id")
+        .in("farm_id", farmIds);
+
+      const pIds = (pondsData ?? []).map((p) => p.id);
+      if (pIds.length > 0) {
+        const { data: cyclesData } = await supabase
+          .from("pond_cycles")
+          .select("id")
+          .in("pond_id", pIds);
+
+        const cIds = (cyclesData ?? []).map((c) => c.id);
+        if (cIds.length > 0) {
+          const { data: harvestsData } = await supabase
+            .from("harvests")
+            .select("weight_kg, harvest_date")
+            .in("cycle_id", cIds)
+            .gte("harvest_date", startOfSixMonthsAgoStr);
+          sixMonthHarvestsData = harvestsData ?? [];
+        }
+      }
+    }
+  }
+
+
+  // Populate expenses into chartData
+  sixMonthExpensesData.forEach((exp) => {
+    const expDate = new Date(exp.expense_date);
+    const m = expDate.getMonth();
+    const y = expDate.getFullYear();
+    const match = chartData.find((c) => c.monthIndex === m && c.year === y);
+    if (match) {
+      match.expense += Number(exp.amount || 0);
+    }
+  });
+
+  // Populate harvests into chartData
+  sixMonthHarvestsData.forEach((harv) => {
+    const harvDate = new Date(harv.harvest_date);
+    const m = harvDate.getMonth();
+    const y = harvDate.getFullYear();
+    const match = chartData.find((c) => c.monthIndex === m && c.year === y);
+    if (match) {
+      match.revenue += Number(harv.weight_kg || 0) * 23000;
+    }
+  });
   }
 
   const displayName =
@@ -111,6 +186,7 @@ export default async function DashboardPage() {
       monthlyExpenses={monthlyExpenses}
       monthlyRevenue={monthlyRevenue}
       farms={farms ?? []}
+      chartData={chartData}
     />
   );
 }

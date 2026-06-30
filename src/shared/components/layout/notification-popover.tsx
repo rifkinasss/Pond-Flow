@@ -9,27 +9,72 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getNotificationPermissionStatus, requestNotificationPermission, triggerNotification } from "@/shared/lib/notifications";
 
 export function NotificationPopover() {
   const [notifications, setNotifications] = useState<SystemNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [permissionStatus, setPermissionStatus] = useState<"granted" | "denied" | "default">("default");
+
+  const checkPermission = async () => {
+    const status = await getNotificationPermissionStatus();
+    setPermissionStatus(status);
+  };
 
   const loadNotifications = () => {
     startTransition(async () => {
       const data = await getSystemNotifications();
       setNotifications(data.notifications);
       setUnreadCount(data.unreadCount);
+
+      // Trigger local/push notification for new entries
+      if (data.notifications.length > 0) {
+        const storedNotified = localStorage.getItem("pondflow_notified_ids");
+        if (storedNotified === null) {
+          // First run: register active notification IDs to prevent spamming
+          const initialIds = data.notifications.map((n) => n.id);
+          localStorage.setItem("pondflow_notified_ids", JSON.stringify(initialIds));
+        } else {
+          try {
+            const notifiedIds: string[] = JSON.parse(storedNotified);
+            const newNotifiedIds = [...notifiedIds];
+            let hasNew = false;
+
+            for (const item of data.notifications) {
+              if (!notifiedIds.includes(item.id)) {
+                await triggerNotification(item.title, item.message, item.href);
+                newNotifiedIds.push(item.id);
+                hasNew = true;
+              }
+            }
+
+            if (hasNew) {
+              // Keep only the last 50 notification IDs to prevent localStorage bloat
+              const keptIds = newNotifiedIds.slice(-50);
+              localStorage.setItem("pondflow_notified_ids", JSON.stringify(keptIds));
+            }
+          } catch (e) {
+            console.error("Gagal memproses riwayat notifikasi lokal:", e);
+          }
+        }
+      }
     });
   };
 
   useEffect(() => {
     loadNotifications();
+    checkPermission();
     // Refresh notifications every 60 seconds
     const interval = setInterval(loadNotifications, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleRequestPermission = async () => {
+    const granted = await requestNotificationPermission();
+    setPermissionStatus(granted ? "granted" : "denied");
+  };
 
   const handleMarkAllRead = () => {
     setUnreadCount(0);
@@ -78,6 +123,21 @@ export function NotificationPopover() {
             </button>
           )}
         </div>
+
+        {/* Permission CTA Banner */}
+        {permissionStatus !== "granted" && (
+          <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border-b border-amber-100 dark:border-gray-800/80 flex items-center justify-between gap-3 transition-colors">
+            <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-snug flex-1">
+              Aktifkan notifikasi untuk menerima peringatan stok dan panen langsung di HP/desktop Anda.
+            </p>
+            <button
+              onClick={handleRequestPermission}
+              className="text-[10px] font-bold text-white bg-sky-500 hover:bg-sky-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+            >
+              Aktifkan
+            </button>
+          </div>
+        )}
 
         {/* Content List */}
         <div className="max-h-[360px] overflow-y-auto divide-y divide-gray-50">

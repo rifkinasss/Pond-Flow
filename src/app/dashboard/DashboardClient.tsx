@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useTranslation } from "@/shared/i18n/LanguageContext";
 import { formatCurrency } from "@/shared/lib/utils";
 import {
@@ -26,6 +27,12 @@ interface DashboardClientProps {
   monthlyExpenses: number;
   monthlyRevenue: number;
   farms: any[];
+  chartData: {
+    monthIndex: number;
+    year: number;
+    expense: number;
+    revenue: number;
+  }[];
 }
 
 export function DashboardClient({
@@ -38,8 +45,58 @@ export function DashboardClient({
   monthlyExpenses,
   monthlyRevenue,
   farms,
+  chartData,
 }: DashboardClientProps) {
   const { t, language } = useTranslation();
+  const [localGreeting, setLocalGreeting] = useState(greeting);
+  const [localDateStr, setLocalDateStr] = useState(dateStr);
+
+  const localizedChartData = (chartData ?? []).map((pt) => {
+    const tempDate = new Date(pt.year, pt.monthIndex, 1);
+    const monthLabel = tempDate.toLocaleDateString(language === "en" ? "en-US" : "id-ID", {
+      month: "short",
+    });
+    return {
+      month: monthLabel,
+      expense: pt.expense,
+      revenue: pt.revenue,
+    };
+  });
+
+  useEffect(() => {
+    const now = new Date();
+    const hours = now.getHours();
+    
+    let computedGreeting = "";
+    if (language === "en") {
+      if (hours < 12) {
+        computedGreeting = "Good morning";
+      } else if (hours < 17) {
+        computedGreeting = "Good afternoon";
+      } else {
+        computedGreeting = "Good evening";
+      }
+    } else {
+      if (hours < 11) {
+        computedGreeting = "Selamat pagi";
+      } else if (hours < 15) {
+        computedGreeting = "Selamat siang";
+      } else if (hours < 18) {
+        computedGreeting = "Selamat sore";
+      } else {
+        computedGreeting = "Selamat malam";
+      }
+    }
+    setLocalGreeting(computedGreeting);
+
+    const formattedDate = now.toLocaleDateString(language === "en" ? "en-US" : "id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    setLocalDateStr(formattedDate);
+  }, [language]);
 
   const stats = [
     {
@@ -112,9 +169,9 @@ export function DashboardClient({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <p className="text-sm text-muted-foreground font-medium">{dateStr}</p>
+          <p className="text-sm text-muted-foreground font-medium">{localDateStr}</p>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mt-0.5">
-            {language === "en" ? "Welcome back" : greeting},{" "}
+            {localGreeting},{" "}
             <span className="text-sky-600 dark:text-sky-400">{displayName}</span> 👋
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -169,7 +226,7 @@ export function DashboardClient({
       </div>
 
       {/* Modern Financial Trend Chart */}
-      <FinancialTrendChart />
+      <FinancialTrendChart data={localizedChartData} />
 
       {/* Map Section */}
       <FarmMap farms={farms ?? []} />
