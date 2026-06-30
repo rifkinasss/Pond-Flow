@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { User, Phone, Building2, Lock, Save, KeyRound, Check, ShieldCheck } from "lucide-react";
+import { User, Phone, Building2, Lock, Save, KeyRound, Check, ShieldCheck, LogOut } from "lucide-react";
 import { updateProfile, updatePassword } from "@/features/profile/actions/profile.actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { createClient } from "@/shared/lib/supabase/client";
 
 const AVATAR_OPTIONS = [
   { emoji: "🐟", label: "Ikan" },
@@ -32,9 +34,17 @@ interface ProfileFormProps {
 export function ProfileForm({ user }: ProfileFormProps) {
   const metadata = user.user_metadata || {};
   const [selectedAvatar, setSelectedAvatar] = useState(metadata.avatar || "🐟");
+  const router = useRouter();
 
   const [isProfilePending, startProfileTransition] = useTransition();
   const [isPasswordPending, startPasswordTransition] = useTransition();
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    toast.success("Berhasil keluar");
+    router.push("/login");
+  };
 
   const handleProfileSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -248,6 +258,24 @@ export function ProfileForm({ user }: ProfileFormProps) {
             </Button>
           </div>
         </form>
+      </div>
+
+      {/* ── Section 3: Logout untuk Mobile & Desktop ── */}
+      <div className="bg-red-50/50 dark:bg-red-950/10 rounded-2xl border border-red-100 dark:border-red-900/30 shadow-sm p-6 sm:p-8 space-y-6">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="space-y-1">
+            <h2 className="text-base font-bold text-red-600 dark:text-red-400">Keluar dari Akun</h2>
+            <p className="text-xs text-muted-foreground dark:text-slate-400">Keluar dari sesi aktif akun PondFlow Anda di perangkat ini</p>
+          </div>
+          <Button
+            onClick={handleSignOut}
+            type="button"
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl px-6 py-2.5 shadow-md shadow-red-200 dark:shadow-none transition-all inline-flex items-center gap-2"
+          >
+            <LogOut size={16} />
+            Keluar Akun
+          </Button>
+        </div>
       </div>
 
     </div>
