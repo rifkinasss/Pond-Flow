@@ -56,4 +56,9 @@ Aplikasi Mobile & PWA manajemen keuangan budidaya ikan. Catat pengeluaran, pemas
 - 📈 **Prediksi Panen & Simulasi Keuntungan AI**: Perhitungan simulasi kelayakan tebar benih dan proyeksi laba bersih berdasarkan input perkiraan pakan dan masa pemeliharaan menggunakan model AI.
 - 📅 **Pengingat Pakan & Rekomendasi Takaran**: Alarm terjadwal harian via notifikasi disertai rekomendasi kalkulasi berat pakan ideal berdasarkan umur benih ikan saat itu untuk menghemat FCR.
 - 🌊 **Dashboard Realtime Kualitas Air (IoT)**: Integrasi sensor kualitas air kolam (pH, Suhu, Kadar Oksigen) dengan notifikasi darurat realtime jika kondisi air memburuk.
+- 📊 **Kalkulator FCR (Feed Conversion Ratio)**: Menghitung efisiensi konsumsi pakan terhadap berat total ikan saat panen untuk membantu evaluasi pakan terbaik.
+- 🦠 **Diagnosis Penyakit Ikan dengan AI**: Ambil foto kondisi fisik ikan yang bergejala sakit, AI Gemini akan mendeteksi jenis penyakit dan memberikan rekomendasi obat serta tindakan karantina.
+- 🌦️ **Integrasi Cuaca & Peringatan Dini Kolam**: Peringatan otomatis berdasarkan perkiraan cuaca setempat untuk memotong takaran pakan saat hujan guna menjaga kadar pH air.
+- 🤝 **B2B Hub Penjualan Panen (Marketplace)**: Menghubungkan langsung petambak yang siap panen dengan pembeli skala besar (B2B) untuk memotong rantai tengkulak.
+- 👥 **Akses Multi-Role (Owner & Staff)**: Hak akses terpisah di mana pemilik dapat melihat data keuangan sensitif, sementara staf lapangan hanya dapat menginput catatan harian pakan/kematian ikan.
 
