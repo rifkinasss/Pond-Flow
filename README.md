@@ -45,7 +45,15 @@ Aplikasi Mobile & PWA manajemen keuangan budidaya ikan. Catat pengeluaran, pemas
    - **Android**: `npx cap open android`
    - **iOS**: `npx cap open ios`
 
-## Rencana Pengembangan Selanjutnya (Roadmap v1.1.0 - Minor)
+## Rencana Pengembangan Selanjutnya (Roadmap)
 
-- 🔒 **Autentikasi OTP (One-Time Password)**: Integrasi verifikasi kode OTP via WhatsApp atau Email untuk login/pendaftaran yang lebih aman dan praktis di perangkat mobile.
+### Versi v1.1.0 (Minor Update)
+- 🔒 **Autentikasi OTP (One-Time Password)**: Integrasi verifikasi kode OTP via WhatsApp atau Email untuk login/pendaftaran yang lebih praktis dan aman di perangkat mobile.
+- 📄 **Ekspor Laporan Keuangan (PDF & Excel)**: Fitur satu-klik untuk mencetak pencatatan transaksi keuangan, HPP, dan performa panen menjadi berkas laporan profesional siap cetak.
+
+### Versi Pengembangan Lanjutan (Future Backlog)
+- 📸 **Scan Nota Belanja Otomatis (AI OCR)**: Cukup ambil foto nota/kuitansi belanja pakan atau obat-obatan, AI Gemini akan secara otomatis membaca data teks dan mencatat nominal pengeluaran ke database.
+- 📈 **Prediksi Panen & Simulasi Keuntungan AI**: Perhitungan simulasi kelayakan tebar benih dan proyeksi laba bersih berdasarkan input perkiraan pakan dan masa pemeliharaan menggunakan model AI.
+- 📅 **Pengingat Pakan & Rekomendasi Takaran**: Alarm terjadwal harian via notifikasi disertai rekomendasi kalkulasi berat pakan ideal berdasarkan umur benih ikan saat itu untuk menghemat FCR.
+- 🌊 **Dashboard Realtime Kualitas Air (IoT)**: Integrasi sensor kualitas air kolam (pH, Suhu, Kadar Oksigen) dengan notifikasi darurat realtime jika kondisi air memburuk.
 
