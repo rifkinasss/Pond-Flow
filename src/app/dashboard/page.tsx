@@ -89,20 +89,24 @@ export default async function DashboardPage() {
         monthlyRevenue = harvestKg * 23000;
       }
     }
-  // 6-month historical calculations
-  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
-  const startOfSixMonthsAgoStr = sixMonthsAgo.toISOString().split("T")[0];
+  }
 
-  let sixMonthExpensesData: any[] = [];
-  let sixMonthHarvestsData: any[] = [];
+  // 12-month / Calendar year calculations for filter support
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+  const earliestStartDate = startOfYear < twelveMonthsAgo ? startOfYear : twelveMonthsAgo;
+  const earliestStartDateStr = earliestStartDate.toISOString().split("T")[0];
+
+  let historicalExpenses: any[] = [];
+  let historicalHarvests: any[] = [];
 
   if (farmIds.length > 0) {
     const { data: expData } = await supabase
       .from("expenses")
       .select("amount, expense_date")
       .in("farm_id", farmIds)
-      .gte("expense_date", startOfSixMonthsAgoStr);
-    sixMonthExpensesData = expData ?? [];
+      .gte("expense_date", earliestStartDateStr);
+    historicalExpenses = expData ?? [];
 
     if (totalPondsCount > 0) {
       const { data: pondsData } = await supabase
@@ -123,35 +127,11 @@ export default async function DashboardPage() {
             .from("harvests")
             .select("weight_kg, harvest_date")
             .in("cycle_id", cIds)
-            .gte("harvest_date", startOfSixMonthsAgoStr);
-          sixMonthHarvestsData = harvestsData ?? [];
+            .gte("harvest_date", earliestStartDateStr);
+          historicalHarvests = harvestsData ?? [];
         }
       }
     }
-  }
-
-
-  // Populate expenses into chartData
-  sixMonthExpensesData.forEach((exp) => {
-    const expDate = new Date(exp.expense_date);
-    const m = expDate.getMonth();
-    const y = expDate.getFullYear();
-    const match = chartData.find((c) => c.monthIndex === m && c.year === y);
-    if (match) {
-      match.expense += Number(exp.amount || 0);
-    }
-  });
-
-  // Populate harvests into chartData
-  sixMonthHarvestsData.forEach((harv) => {
-    const harvDate = new Date(harv.harvest_date);
-    const m = harvDate.getMonth();
-    const y = harvDate.getFullYear();
-    const match = chartData.find((c) => c.monthIndex === m && c.year === y);
-    if (match) {
-      match.revenue += Number(harv.weight_kg || 0) * 23000;
-    }
-  });
   }
 
   const displayName =
@@ -186,7 +166,8 @@ export default async function DashboardPage() {
       monthlyExpenses={monthlyExpenses}
       monthlyRevenue={monthlyRevenue}
       farms={farms ?? []}
-      chartData={chartData}
+      expenses={historicalExpenses}
+      harvests={historicalHarvests}
     />
   );
 }

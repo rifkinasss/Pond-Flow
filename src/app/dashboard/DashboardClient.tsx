@@ -27,12 +27,8 @@ interface DashboardClientProps {
   monthlyExpenses: number;
   monthlyRevenue: number;
   farms: any[];
-  chartData: {
-    monthIndex: number;
-    year: number;
-    expense: number;
-    revenue: number;
-  }[];
+  expenses: { amount: number; expense_date: string }[];
+  harvests: { weight_kg: number | null; harvest_date: string }[];
 }
 
 export function DashboardClient({
@@ -45,23 +41,12 @@ export function DashboardClient({
   monthlyExpenses,
   monthlyRevenue,
   farms,
-  chartData,
+  expenses,
+  harvests,
 }: DashboardClientProps) {
   const { t, language } = useTranslation();
   const [localGreeting, setLocalGreeting] = useState(greeting);
   const [localDateStr, setLocalDateStr] = useState(dateStr);
-
-  const localizedChartData = (chartData ?? []).map((pt) => {
-    const tempDate = new Date(pt.year, pt.monthIndex, 1);
-    const monthLabel = tempDate.toLocaleDateString(language === "en" ? "en-US" : "id-ID", {
-      month: "short",
-    });
-    return {
-      month: monthLabel,
-      expense: pt.expense,
-      revenue: pt.revenue,
-    };
-  });
 
   useEffect(() => {
     const now = new Date();
@@ -226,7 +211,7 @@ export function DashboardClient({
       </div>
 
       {/* Modern Financial Trend Chart */}
-      <FinancialTrendChart data={localizedChartData} />
+      <FinancialTrendChart expenses={expenses} harvests={harvests} />
 
       {/* Map Section */}
       <FarmMap farms={farms ?? []} />
