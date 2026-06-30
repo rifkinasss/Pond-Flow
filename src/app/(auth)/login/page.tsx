@@ -34,6 +34,7 @@ export default function LoginPage() {
   const router = useTransitionRouter();
   const { language } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const {
     register,
@@ -44,6 +45,7 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: LoginForm) => {
+    setLoading(true);
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({
       email: data.email,
@@ -51,6 +53,7 @@ export default function LoginPage() {
     });
 
     if (error) {
+      setLoading(false);
       toast.error(language === "en" ? "Sign in failed" : "Login gagal", {
         description:
           error.message === "Invalid login credentials"
@@ -137,9 +140,9 @@ export default function LoginPage() {
           <Button
             type="submit"
             className="w-full rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold h-10 shadow-md shadow-sky-200 dark:shadow-none transition-all"
-            disabled={isSubmitting}
+            disabled={isSubmitting || loading}
           >
-            {isSubmitting ? (
+            {isSubmitting || loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 {language === "en" ? "Signing in..." : "Memproses..."}
@@ -156,6 +159,9 @@ export default function LoginPage() {
             >
               {language === "en" ? "Sign up now" : "Daftar sekarang"}
             </Link>
+          </p>
+          <p className="text-[10px] text-center text-gray-400 dark:text-slate-500 font-bold mt-1 select-none">
+            v1.0.1
           </p>
         </CardFooter>
       </form>

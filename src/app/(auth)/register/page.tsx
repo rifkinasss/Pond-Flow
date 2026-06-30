@@ -279,6 +279,9 @@ export default function RegisterPage() {
               {language === "en" ? "Sign in here" : "Masuk di sini"}
             </Link>
           </p>
+          <p className="text-[10px] text-center text-gray-400 dark:text-slate-500 font-bold mt-1 select-none">
+            v1.0.1
+          </p>
         </CardFooter>
       </form>
     </Card>
