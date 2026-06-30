@@ -14,6 +14,7 @@ import { getNotificationPermissionStatus, requestNotificationPermission, trigger
 export function NotificationPopover() {
   const [notifications, setNotifications] = useState<SystemNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [readIds, setReadIds] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [permissionStatus, setPermissionStatus] = useState<"granted" | "denied" | "default">("default");
@@ -27,7 +28,16 @@ export function NotificationPopover() {
     startTransition(async () => {
       const data = await getSystemNotifications();
       setNotifications(data.notifications);
-      setUnreadCount(data.unreadCount);
+
+      // Filter unread notifications using localStorage read IDs
+      const storedRead = localStorage.getItem("pondflow_read_notification_ids");
+      const readIdsList: string[] = storedRead ? JSON.parse(storedRead) : [];
+      setReadIds(readIdsList);
+
+      const unreadCountFiltered = data.notifications.filter(
+        (n) => !readIdsList.includes(n.id)
+      ).length;
+      setUnreadCount(unreadCountFiltered);
 
       // Trigger local/push notification for new entries
       if (data.notifications.length > 0) {
@@ -77,6 +87,9 @@ export function NotificationPopover() {
   };
 
   const handleMarkAllRead = () => {
+    const allIds = notifications.map((n) => n.id);
+    localStorage.setItem("pondflow_read_notification_ids", JSON.stringify(allIds));
+    setReadIds(allIds);
     setUnreadCount(0);
   };
 
@@ -152,50 +165,53 @@ export function NotificationPopover() {
               </p>
             </div>
           ) : (
-            notifications.map((n) => (
-              <Link
-                key={n.id}
-                href={n.href}
-                onClick={() => setIsOpen(false)}
-                className="p-3.5 flex items-start gap-3 hover:bg-sky-50/50 transition-colors group"
-              >
-                <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-base shadow-xs ${
-                    n.type === "warning"
-                      ? "bg-amber-50 text-amber-600 border border-amber-100"
-                      : n.type === "feed"
-                        ? "bg-amber-50 text-amber-600 border border-amber-100"
-                        : n.type === "success"
-                          ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
-                          : "bg-sky-50 text-sky-600 border border-sky-100"
-                  }`}
+            notifications.map((n) => {
+              const isRead = readIds.includes(n.id);
+              return (
+                <Link
+                  key={n.id}
+                  href={n.href}
+                  onClick={() => setIsOpen(false)}
+                  className={`p-3.5 flex items-start gap-3 hover:bg-sky-50/50 transition-colors group ${isRead ? "opacity-60" : ""}`}
                 >
-                  {n.type === "warning" ? (
-                    <AlertTriangle size={17} />
-                  ) : n.type === "feed" ? (
-                    <Wheat size={17} />
-                  ) : n.type === "success" ? (
-                    <Award size={17} />
-                  ) : (
-                    <Clock size={17} />
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0 space-y-0.5">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-bold text-gray-900 leading-snug group-hover:text-sky-600 transition-colors">
-                      {n.title}
-                    </p>
-                    <span className="text-[10px] text-gray-400 shrink-0 font-medium">{n.timestamp}</span>
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-base shadow-xs ${
+                      n.type === "warning"
+                        ? "bg-amber-50 text-amber-600 border border-amber-100"
+                        : n.type === "feed"
+                          ? "bg-amber-50 text-amber-600 border border-amber-100"
+                          : n.type === "success"
+                            ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                            : "bg-sky-50 text-sky-600 border border-sky-100"
+                    }`}
+                  >
+                    {n.type === "warning" ? (
+                      <AlertTriangle size={17} />
+                    ) : n.type === "feed" ? (
+                      <Wheat size={17} />
+                    ) : n.type === "success" ? (
+                      <Award size={17} />
+                    ) : (
+                      <Clock size={17} />
+                    )}
                   </div>
-                  <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">
-                    {n.message}
-                  </p>
-                </div>
 
-                <ChevronRight size={14} className="text-gray-300 group-hover:text-sky-500 self-center shrink-0 transition-colors" />
-              </Link>
-            ))
+                  <div className="flex-1 min-w-0 space-y-0.5">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-bold text-gray-900 leading-snug group-hover:text-sky-600 transition-colors">
+                        {n.title}
+                      </p>
+                      <span className="text-[10px] text-gray-400 shrink-0 font-medium">{n.timestamp}</span>
+                    </div>
+                    <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">
+                      {n.message}
+                    </p>
+                  </div>
+
+                  <ChevronRight size={14} className="text-gray-300 group-hover:text-sky-500 self-center shrink-0 transition-colors" />
+                </Link>
+              );
+            })
           )}
         </div>
 
