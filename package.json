@@ -10,7 +10,8 @@
     "mobile": "npm run build && npx cap sync",
     "mobile:ios": "npm run mobile && npx cap open ios",
     "mobile:android": "npm run mobile && npx cap open android",
-    "mobile:apk": "cd android && gradlew assembleDebug"
+    "mobile:apk": "cd android && gradlew assembleDebug",
+    "mobile:release": "cd android && gradlew assembleRelease"
   },
   "overrides": {
     "react": "$react",
