@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/shared/components/providers/theme-provider";
 import { LanguageProvider } from "@/shared/i18n/LanguageContext";
 import { RegisterServiceWorker } from "@/shared/components/providers/RegisterServiceWorker";
+import { PageTransitionProvider } from "@/shared/components/providers/PageTransitionProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -65,7 +66,9 @@ export default function RootLayout({
         >
           <LanguageProvider>
             <RegisterServiceWorker />
-            {children}
+            <PageTransitionProvider>
+              {children}
+            </PageTransitionProvider>
             <Toaster richColors position="top-right" />
           </LanguageProvider>
         </ThemeProvider>

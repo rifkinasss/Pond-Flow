@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useTransitionRouter } from "@/shared/hooks/useTransitionRouter";
 import { toast } from "sonner";
 import {
   LayoutDashboard,
@@ -27,7 +28,7 @@ import { useTranslation } from "@/shared/i18n/LanguageContext";
 
 export function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
+  const router = useTransitionRouter();
   const { sidebarOpen, setSidebarOpen } = useAppStore();
   const { t } = useTranslation();
 
@@ -48,7 +49,6 @@ export function Sidebar() {
     await supabase.auth.signOut();
     toast.success("Berhasil keluar");
     router.push("/login");
-    router.refresh();
   };
 
   const handleNavClick = () => {

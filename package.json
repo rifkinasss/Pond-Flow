@@ -6,7 +6,11 @@
     "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "mobile": "npm run build && npx cap sync",
+    "mobile:ios": "npm run mobile && npx cap open ios",
+    "mobile:android": "npm run mobile && npx cap open android",
+    "mobile:apk": "cd android && gradlew assembleDebug"
   },
   "overrides": {
     "react": "$react",
@@ -14,6 +18,10 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/cli": "^7.6.7",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/ios": "^8.4.1",
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.4.0",
     "@radix-ui/react-dialog": "^1.1.17",

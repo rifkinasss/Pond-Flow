@@ -64,12 +64,12 @@ export function RecordHarvestDialog({ cycle, pondName }: RecordHarvestDialogProp
 
       {/* Modal Backdrop */}
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleClose} />
 
-          <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-gray-100 dark:border-slate-800">
+          <div className="relative w-full max-w-md my-auto bg-white dark:bg-slate-900 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-gray-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-slate-800">
+            <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center border border-amber-100 dark:border-amber-800/50">
                   <ShoppingBag size={20} className="text-amber-600 dark:text-amber-400" />
@@ -90,7 +90,7 @@ export function RecordHarvestDialog({ cycle, pondName }: RecordHarvestDialogProp
             </div>
 
             {/* Current Stock Banner & Day Count */}
-            <div className="bg-amber-50/60 dark:bg-amber-950/40 px-6 py-3 border-b border-amber-100 dark:border-amber-900/40 flex items-center justify-between text-xs">
+            <div className="shrink-0 bg-amber-50/60 dark:bg-amber-950/40 px-6 py-3 border-b border-amber-100 dark:border-amber-900/40 flex items-center justify-between text-xs">
               <div className="flex items-center gap-1.5 font-medium text-amber-900 dark:text-amber-200">
                 <span className="bg-amber-100 dark:bg-amber-900/80 text-amber-800 dark:text-amber-200 px-2 py-0.5 rounded-md font-bold text-[11px]">
                   Hari ke-{currentDay}
@@ -103,7 +103,7 @@ export function RecordHarvestDialog({ cycle, pondName }: RecordHarvestDialogProp
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+            <form onSubmit={handleSubmit} className="overflow-y-auto px-6 py-5 space-y-4 max-h-[calc(90vh-120px)]">
               {/* Harvest Type Switch */}
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium text-gray-700 dark:text-slate-200">Tipe Panen</Label>

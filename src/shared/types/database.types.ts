@@ -315,6 +315,96 @@ export type Database = {
         };
         Relationships: [];
       };
+      iot_sensor_devices: {
+        Row: {
+          id: string;
+          user_id: string;
+          pond_id: string;
+          device_code: string;
+          device_secret: string;
+          name: string | null;
+          status: "online" | "offline" | "error";
+          firmware_version: string | null;
+          last_ping: string | null;
+          battery_level: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          pond_id: string;
+          device_code: string;
+          device_secret: string;
+          name?: string | null;
+          status?: "online" | "offline" | "error";
+          firmware_version?: string | null;
+          last_ping?: string | null;
+          battery_level?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          pond_id?: string;
+          device_code?: string;
+          device_secret?: string;
+          name?: string | null;
+          status?: "online" | "offline" | "error";
+          firmware_version?: string | null;
+          last_ping?: string | null;
+          battery_level?: number | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      water_quality_readings: {
+        Row: {
+          id: string;
+          user_id: string;
+          pond_id: string;
+          device_id: string | null;
+          temperature: number | null;     // °C
+          ph_level: number | null;        // 0 – 14
+          dissolved_oxygen: number | null; // ppm
+          salinity: number | null;        // ppt
+          ammonia: number | null;         // ppm
+          water_depth: number | null;     // meter
+          recorded_at: string;
+          source: "sensor" | "manual";
+          raw_payload: Record<string, unknown> | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          pond_id: string;
+          device_id?: string | null;
+          temperature?: number | null;
+          ph_level?: number | null;
+          dissolved_oxygen?: number | null;
+          salinity?: number | null;
+          ammonia?: number | null;
+          water_depth?: number | null;
+          recorded_at?: string;
+          source?: "sensor" | "manual";
+          raw_payload?: Record<string, unknown> | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          pond_id?: string;
+          device_id?: string | null;
+          temperature?: number | null;
+          ph_level?: number | null;
+          dissolved_oxygen?: number | null;
+          salinity?: number | null;
+          ammonia?: number | null;
+          water_depth?: number | null;
+          recorded_at?: string;
+          source?: "sensor" | "manual";
+          raw_payload?: Record<string, unknown> | null;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -338,3 +428,41 @@ export type InventoryItem = Database["public"]["Tables"]["inventory_items"]["Row
 export type FeedingLog = Database["public"]["Tables"]["feeding_logs"]["Row"];
 export type IotDeviceRow = Database["public"]["Tables"]["iot_devices"]["Row"];
 export type IotFeedingScheduleRow = Database["public"]["Tables"]["iot_feeding_schedules"]["Row"];
+
+// ── Water Quality Telemetry types ─────────────────────────────────────────
+export type WaterQualityReading = Database["public"]["Tables"]["water_quality_readings"]["Row"];
+export type WaterQualityInsert = Database["public"]["Tables"]["water_quality_readings"]["Insert"];
+export type IotSensorDevice = Database["public"]["Tables"]["iot_sensor_devices"]["Row"];
+export type IotSensorDeviceInsert = Database["public"]["Tables"]["iot_sensor_devices"]["Insert"];
+
+// ── Parameter threshold constants (nilai normal untuk ikan budidaya umum) ──
+export const WATER_QUALITY_THRESHOLDS = {
+  temperature:      { min: 25,    max: 32,    unit: "°C"  },
+  ph_level:         { min: 6.5,   max: 8.5,   unit: ""    },
+  dissolved_oxygen: { min: 5,     max: 15,    unit: "ppm" },
+  salinity:         { min: 0,     max: 35,    unit: "ppt" },
+  ammonia:          { min: 0,     max: 0.025, unit: "ppm" },
+  water_depth:      { min: 0.5,   max: 3,     unit: "m"   },
+} as const;
+
+export type WaterQualityParam = keyof typeof WATER_QUALITY_THRESHOLDS;
+
+/** Status kualitas parameter berdasarkan threshold */
+export function getParamStatus(
+  param: WaterQualityParam,
+  value: number | null | undefined
+): "normal" | "warning" | "critical" | "no_data" {
+  if (value === null || value === undefined) return "no_data";
+  const t = WATER_QUALITY_THRESHOLDS[param];
+  if (value < t.min || value > t.max) {
+    // Jauh dari range = critical, dekat = warning
+    const range = t.max - t.min;
+    const deviation = Math.min(
+      Math.abs(value - t.min),
+      Math.abs(value - t.max)
+    );
+    return deviation > range * 0.2 ? "critical" : "warning";
+  }
+  return "normal";
+}
+

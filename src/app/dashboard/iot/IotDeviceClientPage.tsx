@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Cpu, Wifi, AlertTriangle } from "lucide-react";
+import { Cpu, Wifi, AlertTriangle, Brain } from "lucide-react";
 import { IotDeviceCard } from "@/features/iot/components/IotDeviceCard";
 import { AddIotDeviceDialog } from "@/features/iot/components/AddIotDeviceDialog";
 import { SmartDosageCalculator } from "@/features/iot/components/SmartDosageCalculator";
+import { WaterQualitySection } from "@/features/iot/components/WaterQualitySection";
+import { AiInsightPanel } from "@/features/ai-insight/components/AiInsightPanel";
 import type { IotDevice } from "@/shared/types/iot.types";
-import type { PondCycle } from "@/shared/types/database.types";
+import type { PondCycle, WaterQualityReading } from "@/shared/types/database.types";
+import type { PredictionResult } from "@/features/ai-insight/engine/predictionEngine";
 import { useTranslation } from "@/shared/i18n/LanguageContext";
 import { createClient } from "@/shared/lib/supabase/client";
 
@@ -14,16 +17,26 @@ interface IotDeviceClientPageProps {
   initialDevices: IotDevice[];
   ponds: Array<{ id: string; name: string }>;
   cycles: PondCycle[];
+  initialWaterReadings: WaterQualityReading[];
+  readingsHistory?: WaterQualityReading[];
+  aiPredictions: PredictionResult[];
 }
 
-export function IotDeviceClientPage({ initialDevices, ponds, cycles }: IotDeviceClientPageProps) {
+export function IotDeviceClientPage({
+  initialDevices,
+  ponds,
+  cycles,
+  initialWaterReadings,
+  readingsHistory = [],
+  aiPredictions,
+}: IotDeviceClientPageProps) {
   const { t } = useTranslation();
   const [devices, setDevices] = useState<IotDevice[]>(initialDevices);
 
   const cycleMap = new Map<string, string>(cycles.map((c) => [c.pond_id, c.id]));
   const pondMap = new Map<string, string>(ponds.map((p) => [p.id, p.name]));
 
-  // Supabase Realtime Listener setup
+  // Supabase Realtime Listener — IoT feeder devices
   useEffect(() => {
     const supabase = createClient();
 
@@ -79,8 +92,8 @@ export function IotDeviceClientPage({ initialDevices, ponds, cycles }: IotDevice
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+    <div className="space-y-8 max-w-7xl mx-auto">
+      {/* ── Page Header ─────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -94,7 +107,7 @@ export function IotDeviceClientPage({ initialDevices, ponds, cycles }: IotDevice
         <AddIotDeviceDialog ponds={ponds} onAddDevice={handleAddDevice} />
       </div>
 
-      {/* Summary Cards */}
+      {/* ── Summary Cards ────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 p-5 shadow-sm flex items-center justify-between">
           <div>
@@ -133,10 +146,37 @@ export function IotDeviceClientPage({ initialDevices, ponds, cycles }: IotDevice
         </div>
       </div>
 
-      {/* Smart Dosage Calculator */}
+      {/* ── 🌊 Water Quality Realtime ────────────────────────────── */}
+      {ponds.length > 0 && (
+        <WaterQualitySection
+          ponds={ponds}
+          initialReadings={initialWaterReadings}
+          readingsHistory={readingsHistory}
+        />
+      )}
+
+      {/* ── 🤖 AI Predictions ────────────────────────────────────── */}
+      {aiPredictions.length > 0 && (
+        <section className="space-y-4">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Brain size={20} className="text-violet-500" />
+            AI Prediksi Panen
+            <span className="text-xs font-medium text-gray-400 dark:text-slate-500 ml-1">
+              — {aiPredictions.length} siklus aktif
+            </span>
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {aiPredictions.map((pred) => (
+              <AiInsightPanel key={pred.cycle_id} result={pred} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Smart Dosage Calculator ──────────────────────────────── */}
       <SmartDosageCalculator />
 
-      {/* Device Cards Grid */}
+      {/* ── IoT Feeder Devices ───────────────────────────────────── */}
       <div className="space-y-4">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center justify-between">
           <span>Daftar Perangkat IoT Feeder Aktif</span>

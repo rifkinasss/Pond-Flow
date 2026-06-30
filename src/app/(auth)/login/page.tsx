@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useTransitionRouter } from "@/shared/hooks/useTransitionRouter";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,7 +31,7 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const router = useRouter();
+  const router = useTransitionRouter();
   const { language } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
 
@@ -62,7 +62,6 @@ export default function LoginPage() {
 
     toast.success(language === "en" ? "Signed in successfully!" : "Berhasil masuk!");
     router.push("/dashboard");
-    router.refresh();
   };
 
   return (
