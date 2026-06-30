@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     default: "PondFlow",
     template: "%s | PondFlow",
   },
-  description: "Manajemen keuangan & HPP budidaya ikan — NasLabs.id",
+  description: "🐟 PondFlow — Aplikasi Mobile & PWA manajemen keuangan budidaya ikan. Catat pengeluaran, pemasukan, hitung HPP otomatis, dapatkan rekomendasi AI pasca panen, dan push notifikasi otomatis. Dibangun dengan Next.js 14, Supabase, Google Gemini, dan Capacitor (Android & iOS).",
   manifest: "/manifest.json",
   icons: {
     icon: "/favicon.ico",

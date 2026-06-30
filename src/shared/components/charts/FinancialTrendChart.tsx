@@ -1,9 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { TrendingUp, Calendar, ArrowUpRight, ArrowDownRight, CircleDollarSign } from "lucide-react";
+import { TrendingUp, Calendar, ArrowUpRight, ArrowDownRight, CircleDollarSign, ChevronDown } from "lucide-react";
 import { formatCurrency } from "@/shared/lib/utils";
 import { useTranslation } from "@/shared/i18n/LanguageContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ChartDataPoint {
   month: string;
@@ -229,16 +235,44 @@ export function FinancialTrendChart({ expenses, harvests }: FinancialTrendChartP
 
         {/* Legend & Filter Controls */}
         <div className="flex flex-wrap items-center gap-4 text-xs font-semibold">
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value as any)}
-            className="text-xs font-bold bg-slate-50 dark:bg-slate-800 text-gray-700 dark:text-slate-200 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors shadow-xs"
-          >
-            <option value="week">{language === "en" ? "This Week" : "Minggu Ini"}</option>
-            <option value="month">{language === "en" ? "This Month" : "Bulan Ini"}</option>
-            <option value="6months">{language === "en" ? "Last 6 Months" : "6 Bulan Terakhir"}</option>
-            <option value="year">{language === "en" ? "This Year" : "Tahun Ini"}</option>
-          </select>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-1.5 text-xs font-bold bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2.5 outline-none cursor-pointer transition-colors shadow-xs select-none">
+              {filterType === "week"
+                ? (language === "en" ? "This Week" : "Minggu Ini")
+                : filterType === "month"
+                  ? (language === "en" ? "This Month" : "Bulan Ini")
+                  : filterType === "6months"
+                    ? (language === "en" ? "Last 6 Months" : "6 Bulan Terakhir")
+                    : (language === "en" ? "This Year" : "Tahun Ini")}
+              <ChevronDown size={14} className="opacity-60" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40 rounded-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-gray-100 dark:border-slate-800 shadow-xl p-1 z-50">
+              <DropdownMenuItem
+                onClick={() => setFilterType("week")}
+                className={`text-xs font-semibold px-2.5 py-2 rounded-lg cursor-pointer transition-colors ${filterType === "week" ? "bg-sky-500 text-white focus:bg-sky-500 focus:text-white" : "text-gray-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 focus:bg-slate-50 focus:text-gray-800 dark:focus:bg-slate-800 dark:focus:text-slate-100"}`}
+              >
+                {language === "en" ? "This Week" : "Minggu Ini"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setFilterType("month")}
+                className={`text-xs font-semibold px-2.5 py-2 rounded-lg cursor-pointer transition-colors ${filterType === "month" ? "bg-sky-500 text-white focus:bg-sky-500 focus:text-white" : "text-gray-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 focus:bg-slate-50 focus:text-gray-800 dark:focus:bg-slate-800 dark:focus:text-slate-100"}`}
+              >
+                {language === "en" ? "This Month" : "Bulan Ini"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setFilterType("6months")}
+                className={`text-xs font-semibold px-2.5 py-2 rounded-lg cursor-pointer transition-colors ${filterType === "6months" ? "bg-sky-500 text-white focus:bg-sky-500 focus:text-white" : "text-gray-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 focus:bg-slate-50 focus:text-gray-800 dark:focus:bg-slate-800 dark:focus:text-slate-100"}`}
+              >
+                {language === "en" ? "Last 6 Months" : "6 Bulan Terakhir"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setFilterType("year")}
+                className={`text-xs font-semibold px-2.5 py-2 rounded-lg cursor-pointer transition-colors ${filterType === "year" ? "bg-sky-500 text-white focus:bg-sky-500 focus:text-white" : "text-gray-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 focus:bg-slate-50 focus:text-gray-800 dark:focus:bg-slate-800 dark:focus:text-slate-100"}`}
+              >
+                {language === "en" ? "This Year" : "Tahun Ini"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
