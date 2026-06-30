@@ -44,3 +44,8 @@ Aplikasi Mobile & PWA manajemen keuangan budidaya ikan. Catat pengeluaran, pemas
 2. Untuk membuka proyek native di Android Studio / Xcode:
    - **Android**: `npx cap open android`
    - **iOS**: `npx cap open ios`
+
+## Rencana Pengembangan Selanjutnya (Roadmap v1.1.0 - Minor)
+
+- 🔒 **Autentikasi OTP (One-Time Password)**: Integrasi verifikasi kode OTP via WhatsApp atau Email untuk login/pendaftaran yang lebih aman dan praktis di perangkat mobile.
+
