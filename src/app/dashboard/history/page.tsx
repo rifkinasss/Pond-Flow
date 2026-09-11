@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { createClient } from "@/shared/lib/supabase/server";
+import { createClient } from "@/shared/lib/app/server";
 import { History, Wheat, Fish, Wallet, Rocket, Filter, MapPin, Clock } from "lucide-react";
 import { formatCurrency } from "@/shared/lib/utils";
 import Link from "next/link";

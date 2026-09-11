@@ -1,5 +1,5 @@
 import { type NextRequest } from "next/server";
-import { updateSession } from "@/shared/lib/supabase/middleware";
+import { updateSession } from "@/shared/lib/app/middleware";
 
 export async function proxy(request: NextRequest) {
   return await updateSession(request);

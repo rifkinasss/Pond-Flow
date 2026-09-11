@@ -1,5 +1,7 @@
 # Panduan Hardware IoT — Auto-Feeder & Water Quality Sensor (ESP32)
 
+> Backend saat ini self-hosted SQLite. Contoh Supabase/REST lama di bawah adalah referensi historis; endpoint aktif adalah `POST /api/iot/telemetry` pada URL home server dengan header `X-Device-Code` dan `X-Device-Secret`.
+
 > **PondFlow Hardware Documentation v2.0**  
 > Diperbarui: Juni 2026 | Platform: ESP32-WROOM-32  
 > Dokumen ini mencakup dua perangkat prototype skala kecil untuk 1 kolam.

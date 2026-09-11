@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { createClient } from "@/shared/lib/supabase/server";
+import { createClient } from "@/shared/lib/app/server";
 import { Wallet, Filter, TrendingDown, Layers, MapPin } from "lucide-react";
 import { AddExpenseDialog } from "@/features/finance/components/AddExpenseDialog";
 import { EXPENSE_CATEGORIES } from "@/features/finance/constants/expense.constants";

@@ -1,13 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/shared/lib/supabase/server";
+import { getCurrentUser } from "@/shared/lib/auth";
+import { sqlite } from "@/shared/lib/sqlite/db";
+import { ownsFarm } from "@/shared/lib/authorization";
+import { randomUUID } from "node:crypto";
 
 export async function createExpense(formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) return { error: "Tidak terautentikasi" };
 
@@ -19,6 +19,7 @@ export async function createExpense(formData: FormData) {
   const description = formData.get("description") as string;
 
   if (!farmId) return { error: "Pilih lokasi farm terlebih dahulu" };
+  if (!ownsFarm(user.id, farmId)) return { error: "Farm tidak ditemukan atau Anda tidak memiliki akses" };
   if (!category) return { error: "Kategori pengeluaran wajib dipilih" };
 
   const amount = parseFloat(amountStr);
@@ -26,17 +27,8 @@ export async function createExpense(formData: FormData) {
     return { error: "Nominal pengeluaran harus berupa angka lebih dari 0" };
   }
 
-  const { error } = await supabase.from("expenses").insert({
-    user_id: user.id,
-    farm_id: farmId,
-    pond_id: pondId && pondId !== "all" ? pondId : null,
-    category: category.trim(),
-    amount,
-    expense_date: expenseDate || new Date().toISOString().split("T")[0],
-    description: description?.trim() || null,
-  });
-
-  if (error) return { error: error.message };
+  try { sqlite.prepare("INSERT INTO expenses (id, user_id, farm_id, pond_id, category, amount, expense_date, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").run(randomUUID(), user.id, farmId, pondId && pondId !== "all" ? pondId : null, category.trim(), amount, expenseDate || new Date().toISOString().split("T")[0], description?.trim() || null); }
+  catch (error) { return { error: error instanceof Error ? error.message : "Gagal menyimpan pengeluaran" }; }
 
   revalidatePath("/dashboard/finance/expenses");
   revalidatePath("/dashboard");
@@ -44,20 +36,11 @@ export async function createExpense(formData: FormData) {
 }
 
 export async function deleteExpense(expenseId: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) return { error: "Tidak terautentikasi" };
 
-  const { error } = await supabase
-    .from("expenses")
-    .delete()
-    .eq("id", expenseId)
-    .eq("user_id", user.id);
-
-  if (error) return { error: error.message };
+  sqlite.prepare("DELETE FROM expenses WHERE id = ? AND user_id = ?").run(expenseId, user.id);
 
   revalidatePath("/dashboard/finance/expenses");
   revalidatePath("/dashboard");

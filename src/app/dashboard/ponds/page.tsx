@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { createClient } from "@/shared/lib/supabase/server";
+import { createClient } from "@/shared/lib/app/server";
 import { Fish, MapPin, Filter, Activity } from "lucide-react";
 import { AddPondDialog } from "@/features/pond/components/AddPondDialog";
 import { PondCard } from "@/features/pond/components/PondCard";

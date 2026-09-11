@@ -11,7 +11,7 @@ import type { IotDevice } from "@/shared/types/iot.types";
 import type { PondCycle, WaterQualityReading } from "@/shared/types/database.types";
 import type { PredictionResult } from "@/features/ai-insight/engine/predictionEngine";
 import { useTranslation } from "@/shared/i18n/LanguageContext";
-import { createClient } from "@/shared/lib/supabase/client";
+import { createClient } from "@/shared/lib/app/client";
 
 interface IotDeviceClientPageProps {
   initialDevices: IotDevice[];
@@ -36,7 +36,7 @@ export function IotDeviceClientPage({
   const cycleMap = new Map<string, string>(cycles.map((c) => [c.pond_id, c.id]));
   const pondMap = new Map<string, string>(ponds.map((p) => [p.id, p.name]));
 
-  // Supabase Realtime Listener — IoT feeder devices
+  // Compatibility listener: device state berasal dari SSR.
   useEffect(() => {
     const supabase = createClient();
 
@@ -181,7 +181,7 @@ export function IotDeviceClientPage({
         <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center justify-between">
           <span>Daftar Perangkat IoT Feeder Aktif</span>
           <span className="text-xs font-normal text-emerald-500 flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800/50">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" /> Supabase Realtime Connected
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" /> Local backend connected
           </span>
         </h2>
         {devices.length === 0 ? (

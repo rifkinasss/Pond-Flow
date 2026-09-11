@@ -11,14 +11,6 @@ const pwaConfig = withPWA({
 const nextConfig = {
   reactStrictMode: true,
   turbopack: {},
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "*.supabase.co",
-      },
-    ],
-  },
 };
 
 export default pwaConfig(nextConfig);

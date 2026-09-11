@@ -1,4 +1,6 @@
 # AI Insight — PondFlow
+
+> Penyimpanan production menggunakan SQLite. Rujukan Supabase pada dokumen historis digantikan database layer di `src/shared/lib/sqlite`.
 ## Spesifikasi Lengkap: Analisis & Rekomendasi Otomatis Pasca Panen
 
 | Atribut | Detail |

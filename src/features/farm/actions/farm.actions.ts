@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/shared/lib/supabase/server";
+import { createClient } from "@/shared/lib/app/server";
 
 export async function createFarm(formData: FormData) {
   const supabase = await createClient();

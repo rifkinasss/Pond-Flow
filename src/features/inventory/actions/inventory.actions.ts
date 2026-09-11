@@ -1,13 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/shared/lib/supabase/server";
+import { getCurrentUser } from "@/shared/lib/auth";
+import { sqlite } from "@/shared/lib/sqlite/db";
+import { ownsFarm, ownsInventoryItem } from "@/shared/lib/authorization";
+import { randomUUID } from "node:crypto";
 
 export async function createInventoryItem(formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) return { error: "Tidak terautentikasi" };
 
@@ -21,6 +21,7 @@ export async function createInventoryItem(formData: FormData) {
   const description = formData.get("description") as string;
 
   if (!farmId) return { error: "Pilih lokasi farm/gudang terlebih dahulu" };
+  if (!ownsFarm(user.id, farmId)) return { error: "Farm tidak ditemukan atau Anda tidak memiliki akses" };
   if (!name || name.trim().length < 2) return { error: "Nama barang minimal 2 karakter" };
   if (!category) return { error: "Kategori barang wajib dipilih" };
 
@@ -28,19 +29,8 @@ export async function createInventoryItem(formData: FormData) {
   const minStockAlert = parseFloat(minAlertStr) || 5;
   const unitPrice = unitPriceStr ? parseFloat(unitPriceStr) : 0;
 
-  const { error } = await supabase.from("inventory_items").insert({
-    user_id: user.id,
-    farm_id: farmId,
-    name: name.trim(),
-    category: category.trim(),
-    stock_quantity: Math.max(0, stockQuantity),
-    unit: unit?.trim() || "kg",
-    unit_price: Math.max(0, unitPrice),
-    min_stock_alert: Math.max(0, minStockAlert),
-    description: description?.trim() || null,
-  });
-
-  if (error) return { error: error.message };
+  try { sqlite.prepare("INSERT INTO inventory_items (id, user_id, farm_id, name, category, stock_quantity, unit, unit_price, min_stock_alert, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").run(randomUUID(), user.id, farmId, name.trim(), category.trim(), Math.max(0, stockQuantity), unit?.trim() || "kg", Math.max(0, unitPrice), Math.max(0, minStockAlert), description?.trim() || null); }
+  catch (error) { return { error: error instanceof Error ? error.message : "Gagal menyimpan barang" }; }
 
   revalidatePath("/dashboard/inventory");
   revalidatePath("/dashboard");
@@ -48,32 +38,16 @@ export async function createInventoryItem(formData: FormData) {
 }
 
 export async function updateStock(itemId: string, deltaAmount: number) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) return { error: "Tidak terautentikasi" };
 
-  // Fetch current item
-  const { data: item, error: fetchErr } = await supabase
-    .from("inventory_items")
-    .select("stock_quantity")
-    .eq("id", itemId)
-    .eq("user_id", user.id)
-    .single();
-
-  if (fetchErr || !item) return { error: "Barang tidak ditemukan" };
+  const item = sqlite.prepare("SELECT stock_quantity FROM inventory_items WHERE id = ? AND user_id = ?").get(itemId, user.id) as { stock_quantity: number } | undefined;
+  if (!item) return { error: "Barang tidak ditemukan" };
 
   const newStock = Math.max(0, Number(item.stock_quantity) + deltaAmount);
 
-  const { error } = await supabase
-    .from("inventory_items")
-    .update({ stock_quantity: newStock })
-    .eq("id", itemId)
-    .eq("user_id", user.id);
-
-  if (error) return { error: error.message };
+  sqlite.prepare("UPDATE inventory_items SET stock_quantity = ? WHERE id = ? AND user_id = ?").run(newStock, itemId, user.id);
 
   revalidatePath("/dashboard/inventory");
   revalidatePath("/dashboard");
@@ -81,20 +55,12 @@ export async function updateStock(itemId: string, deltaAmount: number) {
 }
 
 export async function deleteInventoryItem(itemId: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) return { error: "Tidak terautentikasi" };
 
-  const { error } = await supabase
-    .from("inventory_items")
-    .delete()
-    .eq("id", itemId)
-    .eq("user_id", user.id);
-
-  if (error) return { error: error.message };
+  if (!ownsInventoryItem(user.id, itemId)) return { error: "Barang tidak ditemukan atau Anda tidak memiliki akses" };
+  sqlite.prepare("DELETE FROM inventory_items WHERE id = ? AND user_id = ?").run(itemId, user.id);
 
   revalidatePath("/dashboard/inventory");
   revalidatePath("/dashboard");

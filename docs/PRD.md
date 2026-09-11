@@ -1,6 +1,8 @@
 # Product Requirements Document (PRD)
 # PondFlow — Aplikasi Manajemen Keuangan Budidaya Ikan
 
+> Backend production menggunakan SQLite self-hosted. Referensi arsitektur terbaru ada di `docs/ARCHITECTURE.md` dan `docs/SELF_HOSTED_SQLITE.md`.
+
 | Atribut         | Detail                                          |
 |-----------------|--------------------------------------------------|
 | **Nama Produk** | PondFlow                                        |

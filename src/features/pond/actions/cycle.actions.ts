@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/shared/lib/supabase/server";
+import { createClient } from "@/shared/lib/app/server";
+import { ownsCycle, ownsPond } from "@/shared/lib/authorization";
+import { sqlite } from "@/shared/lib/sqlite/db";
 
 export async function startCycle(formData: FormData) {
   const supabase = await createClient();
@@ -18,6 +20,7 @@ export async function startCycle(formData: FormData) {
   const targetDaysStr = formData.get("target_days") as string;
 
   if (!pondId) return { error: "Kolam tidak valid" };
+  if (!ownsPond(user.id, pondId)) return { error: "Kolam tidak ditemukan atau Anda tidak memiliki akses" };
   if (!fishType || fishType.trim().length < 2) {
     return { error: "Jenis komoditas/ikan wajib diisi" };
   }
@@ -73,6 +76,7 @@ export async function recordHarvest(formData: FormData) {
   const notes = formData.get("notes") as string;
 
   if (!cycleId) return { error: "Siklus tidak valid" };
+  if (!ownsCycle(user.id, cycleId)) return { error: "Siklus tidak ditemukan atau Anda tidak memiliki akses" };
 
   const amountHarvested = parseInt(amountStr, 10);
   if (isNaN(amountHarvested) || amountHarvested <= 0) {
@@ -94,32 +98,18 @@ export async function recordHarvest(formData: FormData) {
     return { error: "Siklus budidaya ini sudah selesai / dipanen" };
   }
 
-  // Insert harvest record
-  const { error: harvestErr } = await supabase.from("harvests").insert({
-    cycle_id: cycleId,
-    amount_harvested: amountHarvested,
-    weight_kg: weightKg,
-    harvest_type: harvestType,
-    notes: notes?.trim() || null,
-  });
-
-  if (harvestErr) return { error: harvestErr.message };
-
   // Calculate new current stock
+  if (amountHarvested > cycle.current_stock) return { error: "Jumlah panen melebihi stok ikan saat ini" };
   const newStock = Math.max(0, cycle.current_stock - amountHarvested);
   const isFinal = harvestType === "final" || newStock === 0;
 
-  // Update pond_cycles table (automatic stock deduction & status update!)
-  const { error: updateErr } = await supabase
-    .from("pond_cycles")
-    .update({
-      current_stock: isFinal ? 0 : newStock,
-      status: isFinal ? "harvested" : "active",
-      harvest_date: isFinal ? new Date().toISOString() : null,
-    })
-    .eq("id", cycleId);
-
-  if (updateErr) return { error: updateErr.message };
+  try {
+    const saveHarvest = sqlite.transaction(() => {
+      sqlite.prepare("INSERT INTO harvests (id, cycle_id, amount_harvested, weight_kg, harvest_type, harvest_date, notes) VALUES (lower(hex(randomblob(16))), ?, ?, ?, ?, ?, ?)").run(cycleId, amountHarvested, weightKg, harvestType, new Date().toISOString(), notes?.trim() || null);
+      sqlite.prepare("UPDATE pond_cycles SET current_stock = ?, status = ?, harvest_date = ? WHERE id = ? AND status = 'active'").run(isFinal ? 0 : newStock, isFinal ? "harvested" : "active", isFinal ? new Date().toISOString() : null, cycleId);
+    });
+    saveHarvest();
+  } catch (error) { return { error: error instanceof Error ? error.message : "Gagal menyimpan panen" }; }
 
   revalidatePath("/dashboard/ponds");
   revalidatePath("/dashboard");

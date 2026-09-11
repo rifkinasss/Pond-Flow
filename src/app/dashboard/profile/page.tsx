@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { createClient } from "@/shared/lib/supabase/server";
+import { createClient } from "@/shared/lib/app/server";
 import { User, ShieldCheck } from "lucide-react";
 import { ProfileForm } from "@/features/profile/components/ProfileForm";
 

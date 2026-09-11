@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/shared/lib/supabase/client";
+import { createClient } from "@/shared/lib/app/client";
 import { LogOut, User } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "@/shared/i18n/LanguageContext";

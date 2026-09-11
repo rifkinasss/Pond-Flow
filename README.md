@@ -1,6 +1,6 @@
 # 🐟 PondFlow
 
-Aplikasi Mobile & PWA manajemen keuangan budidaya ikan. Catat pengeluaran, pemasukan, hitung HPP otomatis, dapatkan rekomendasi AI pasca panen, dan push notifikasi otomatis. Dibangun dengan Next.js 14, Supabase, Google Gemini, dan Capacitor (Android & iOS).
+Aplikasi Mobile & PWA manajemen keuangan budidaya ikan. Catat pengeluaran, pemasukan, hitung HPP otomatis, dapatkan rekomendasi AI pasca panen, dan push notifikasi otomatis. Dibangun dengan Next.js, SQLite self-hosted, Google Gemini, dan Capacitor (Android & iOS).
 
 ## Fitur Utama
 
@@ -14,7 +14,7 @@ Aplikasi Mobile & PWA manajemen keuangan budidaya ikan. Catat pengeluaran, pemas
 
 ### Prasyarat
 - Node.js (v18 ke atas)
-- Akun & Database Supabase
+- Home server dengan Node.js dan persistent storage
 - Google Gemini API Key
 
 ### Instalasi & Menjalankan Lokal
@@ -28,12 +28,14 @@ Aplikasi Mobile & PWA manajemen keuangan budidaya ikan. Catat pengeluaran, pemas
    ```bash
    npm install
    ```
-3. Konfigurasikan berkas `.env.local` dengan mengisi variabel lingkungan yang dibutuhkan (gunakan `.env.example` sebagai referensi).
+3. Konfigurasikan `.env.local` berdasarkan `.env.example`, terutama `PONDFLOW_DATA_DIR` dan `AUTH_SECRET`.
 4. Jalankan server pengembangan:
    ```bash
    npm run dev
    ```
 5. Buka [http://localhost:3000](http://localhost:3000) di browser Anda.
+
+Panduan self-hosted, backup, schema, dan deployment tersedia di [docs/SELF_HOSTED_SQLITE.md](docs/SELF_HOSTED_SQLITE.md) dan [docs/ARCHITECTURE_SELF_HOSTED.md](docs/ARCHITECTURE_SELF_HOSTED.md).
 
 ### Build untuk Mobile (Capacitor)
 
@@ -66,4 +68,3 @@ Aplikasi Mobile & PWA manajemen keuangan budidaya ikan. Catat pengeluaran, pemas
 Mengingat batas maksimal navigasi bawah ponsel adalah 5 menu utama, perluasan fitur di atas akan diakomodasi melalui arsitektur informasi berikut:
 1. **Menu Hub "Lainnya" (More Tab)**: Mengganti tab ke-5 pada Bottom Nav menjadi pusat akses fitur sekunder (seperti sensor IoT, prakiraan cuaca, dan diagnosis penyakit AI) dalam bentuk menu grid yang teratur.
 2. **Sub-Kategorisasi Modul**: Menyatukan fitur-fitur operasional yang sejenis (contoh: kalkulator FCR dimasukkan ke tab Kolam, sedangkan ekspor laporan dimasukkan ke tab Keuangan).
-

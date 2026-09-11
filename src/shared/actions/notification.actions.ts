@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/shared/lib/supabase/server";
+import { createClient } from "@/shared/lib/app/server";
 
 export interface SystemNotification {
   id: string;

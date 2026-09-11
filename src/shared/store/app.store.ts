@@ -22,7 +22,8 @@ export const useAppStore = create<AppStore>()(
       setActiveFarm: (farm) =>
         set({ activeFarm: farm, activeFarmId: farm?.id ?? null }),
 
-      sidebarOpen: false,
+      // Open by default on desktop; Sidebar normalizes this on mobile after mount.
+      sidebarOpen: true,
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
     }),

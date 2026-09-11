@@ -19,7 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { createClient } from "@/shared/lib/supabase/client";
+import { createClient } from "@/shared/lib/app/client";
 import { useTranslation } from "@/shared/i18n/LanguageContext";
 
 const forgotSchema = z.object({

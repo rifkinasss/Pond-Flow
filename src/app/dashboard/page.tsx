@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { createClient } from "@/shared/lib/supabase/server";
+import { createClient } from "@/shared/lib/app/server";
 import { DashboardClient } from "./DashboardClient";
 
 export const metadata: Metadata = { title: "Dashboard" };

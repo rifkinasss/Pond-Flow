@@ -1,45 +1,16 @@
-// Script verifikasi koneksi Supabase & tabel tersedia
-import { createClient } from "@supabase/supabase-js";
-import { readFileSync } from "fs";
-import ws from "ws";
+import Database from "better-sqlite3";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import path from "node:path";
 
-// Baca .env.local manual
-const env = readFileSync(".env.local", "utf-8");
-const get = (key) => env.match(new RegExp(`^${key}=(.+)$`, "m"))?.[1]?.trim();
-
-const url = get("NEXT_PUBLIC_SUPABASE_URL");
-const key = get("NEXT_PUBLIC_SUPABASE_ANON_KEY");
-
-if (!url || !key) {
-  console.error("❌ SUPABASE_URL atau ANON_KEY tidak ditemukan di .env.local");
-  process.exit(1);
-}
-
-const supabase = createClient(url, key, {
-  realtime: { transport: ws },
-});
-
-const tables = [
-  "profiles", "farms", "ponds", "cycles",
-  "expenses", "incomes", "inventory_items",
-  "inventory_transactions", "harvest_reports", "ai_insights"
-];
-
-console.log("🔍 Mengecek koneksi ke Supabase...\n");
-
-let allOk = true;
-for (const table of tables) {
-  const { error } = await supabase.from(table).select("id").limit(1);
-  if (error) {
-    console.log(`  ❌ ${table.padEnd(28)} ${error.message}`);
-    allOk = false;
-  } else {
-    console.log(`  ✅ ${table}`);
-  }
-}
-
-console.log(allOk
-  ? "\n🎉 Semua tabel OK — siap development!"
-  : "\n⚠️  Ada tabel yang belum dibuat. Jalankan SQL migration dulu."
-);
-process.exit(allOk ? 0 : 1);
+const dataDir = process.env.PONDFLOW_DATA_DIR || path.join(process.cwd(), "data");
+const file = path.join(dataDir, "pondflow.sqlite");
+mkdirSync(dataDir, { recursive: true });
+const db = new Database(file);
+db.pragma("foreign_keys = ON");
+db.exec(readFileSync(path.join(process.cwd(), "src/shared/lib/sqlite/schema.sql"), "utf8"));
+const expected = ["users", "sessions", "farms", "ponds", "pond_cycles", "harvests", "expenses", "inventory_items", "feeding_logs", "iot_devices", "iot_sensor_devices", "water_quality_readings"];
+const tables = new Set(db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all().map((row) => row.name));
+const missing = expected.filter((name) => !tables.has(name));
+if (missing.length) { console.error(`Tabel kurang: ${missing.join(", ")}`); process.exit(1); }
+console.log(`SQLite OK: ${file}`);
+console.log(`Tabel tervalidasi: ${expected.length}`);

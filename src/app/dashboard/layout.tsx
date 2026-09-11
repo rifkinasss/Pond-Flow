@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { createClient } from "@/shared/lib/supabase/server";
+import { createClient } from "@/shared/lib/app/server";
 import { Sidebar, Navbar } from "@/shared/components/layout/sidebar";
 import { BottomNav } from "@/shared/components/layout/bottom-nav";
+import { getSystemSetting } from "@/shared/lib/settings";
 
 export const metadata: Metadata = {
   title: {
@@ -23,6 +24,12 @@ export default async function DashboardLayout({
 
   if (!user) {
     redirect("/login");
+  }
+
+  const maintenanceMode = getSystemSetting("maintenance_mode", "false") === "true";
+  const isAdmin = user.role === "admin" || user.role === "superadmin";
+  if (maintenanceMode && !isAdmin) {
+    redirect("/maintenance");
   }
 
   return (

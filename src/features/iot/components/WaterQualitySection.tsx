@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { createClient } from "@/shared/lib/supabase/client";
 import { WaterQualityCard } from "./WaterQualityCard";
 import { WaterQualityTrendChart } from "./WaterQualityTrendChart";
 import type { WaterQualityReading } from "@/shared/types/database.types";
@@ -36,42 +35,21 @@ export function WaterQualitySection({
     setLastUpdate(new Date());
   }, []);
 
-  // Supabase Realtime — update live saat sensor kirim data baru
+  // SQLite tidak menyediakan realtime; refresh snapshot secara berkala dari backend.
   useEffect(() => {
-    const supabase = createClient();
     const pondIds = ponds.map((p) => p.id);
     if (pondIds.length === 0) return;
-
-    const channel = supabase
-      .channel("water_quality_realtime")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "water_quality_readings",
-        },
-        (payload) => {
-          const newRow = payload.new as WaterQualityReading;
-          if (!pondIds.includes(newRow.pond_id)) return;
-
-          setReadings((prev) => {
-            const updated = new Map(prev);
-            const existing = updated.get(newRow.pond_id);
-            // Hanya update jika lebih baru
-            if (!existing || new Date(newRow.recorded_at) > new Date(existing.recorded_at)) {
-              updated.set(newRow.pond_id, newRow);
-              setLastUpdate(new Date());
-            }
-            return updated;
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+    let cancelled = false;
+    const refresh = async () => {
+      const params = pondIds.map((id) => `pond_id=${encodeURIComponent(id)}`).join("&");
+      const response = await fetch(`/api/iot/water-quality?${params}`, { cache: "no-store" });
+      if (!response.ok || cancelled) return;
+      const body = await response.json() as { readings: WaterQualityReading[] };
+      setReadings(new Map(body.readings.map((reading) => [reading.pond_id, reading])));
+      setLastUpdate(new Date());
     };
+    const timer = window.setInterval(refresh, 15000);
+    return () => { cancelled = true; window.clearInterval(timer); };
   }, [ponds]);
 
   if (ponds.length === 0) return null;

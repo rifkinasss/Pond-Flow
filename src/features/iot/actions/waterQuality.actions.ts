@@ -1,7 +1,8 @@
 "use server";
 
-import { createClient } from "@/shared/lib/supabase/server";
+import { getCurrentUser } from "@/shared/lib/auth";
 import type { WaterQualityReading } from "@/shared/types/database.types";
+import { findLatestWaterQuality, findLatestWaterQualityForPonds, findWaterQualityHistory } from "@/features/iot/repositories/water-quality.repository";
 
 /**
  * Ambil pembacaan kualitas air terbaru (1 baris) per kolam
@@ -9,21 +10,8 @@ import type { WaterQualityReading } from "@/shared/types/database.types";
 export async function getLatestWaterQuality(
   pondId: string
 ): Promise<WaterQualityReading | null> {
-  const supabase = await createClient();
-
-  const { data, error } = await (supabase as any)
-    .from("water_quality_readings")
-    .select("*")
-    .eq("pond_id", pondId)
-    .order("recorded_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    console.error("[WaterQuality] getLatest error:", error.message);
-    return null;
-  }
-  return data ?? null;
+  const user = await getCurrentUser();
+  return user ? findLatestWaterQuality(user.id, pondId) : null;
 }
 
 /**
@@ -34,20 +22,8 @@ export async function getWaterQualityHistory(
   pondId: string,
   limitRows = 48
 ): Promise<WaterQualityReading[]> {
-  const supabase = await createClient();
-
-  const { data, error } = await (supabase as any)
-    .from("water_quality_readings")
-    .select("*")
-    .eq("pond_id", pondId)
-    .order("recorded_at", { ascending: true })
-    .limit(limitRows);
-
-  if (error) {
-    console.error("[WaterQuality] getHistory error:", error.message);
-    return [];
-  }
-  return data ?? [];
+  const user = await getCurrentUser();
+  return user ? findWaterQualityHistory(user.id, pondId, limitRows) : [];
 }
 
 /**
@@ -57,29 +33,6 @@ export async function getLatestWaterQualityAllPonds(
   pondIds: string[]
 ): Promise<WaterQualityReading[]> {
   if (pondIds.length === 0) return [];
-  const supabase = await createClient();
-
-  // Ambil 1 baris terbaru per pond_id menggunakan DISTINCT ON
-  const { data, error } = await (supabase as any)
-    .from("water_quality_readings")
-    .select("*")
-    .in("pond_id", pondIds)
-    .order("pond_id")
-    .order("recorded_at", { ascending: false });
-
-  if (error) {
-    console.error("[WaterQuality] getAllPonds error:", error.message);
-    return [];
-  }
-
-  // Deduplicate — ambil 1 terbaru per kolam
-  const seen = new Set<string>();
-  const result: WaterQualityReading[] = [];
-  for (const row of (data ?? [])) {
-    if (!seen.has(row.pond_id)) {
-      seen.add(row.pond_id);
-      result.push(row);
-    }
-  }
-  return result;
+  const user = await getCurrentUser();
+  return user ? findLatestWaterQualityForPonds(user.id, pondIds) : [];
 }

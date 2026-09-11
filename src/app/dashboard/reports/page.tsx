@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { createClient } from "@/shared/lib/supabase/server";
+import { createClient } from "@/shared/lib/app/server";
 import { TrendingUp, TrendingDown, DollarSign, Scale, PieChart, Layers, MapPin, Filter, AlertCircle, Award } from "lucide-react";
 import { formatCurrency } from "@/shared/lib/utils";
 import Link from "next/link";

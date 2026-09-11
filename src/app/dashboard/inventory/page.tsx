@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { createClient } from "@/shared/lib/supabase/server";
+import { getCurrentUser } from "@/shared/lib/auth";
+import { findFarmsForUser } from "@/features/farm/repositories/farm.repository";
+import { findInventoryForUser } from "@/features/inventory/repositories/inventory.repository";
 import { Package, Filter, AlertTriangle, CheckCircle2, MapPin, XCircle } from "lucide-react";
 import { AddInventoryDialog } from "@/features/inventory/components/AddInventoryDialog";
 import { InventoryCard } from "@/features/inventory/components/InventoryCard";
@@ -18,38 +20,16 @@ export default async function InventoryPage({ searchParams }: PageProps) {
   const selectedFarmId = params.farm;
   const selectedCategory = params.category;
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
+  if (!user) return null;
 
   // Ambil semua farm milik user
-  const { data: farmsData } = await supabase
-    .from("farms")
-    .select("id, name")
-    .eq("user_id", user!.id)
-    .order("name", { ascending: true });
-
-  const farms: Array<{ id: string; name: string }> = farmsData ?? [];
+  const farmsData = await findFarmsForUser(user.id);
+  const farms: Array<{ id: string; name: string }> = farmsData.map(({ id, name }) => ({ id, name }));
   const farmIds = farms.map((f) => f.id);
 
   // Ambil inventory items
-  let query = supabase
-    .from("inventory_items")
-    .select("*")
-    .eq("user_id", user!.id)
-    .order("created_at", { ascending: false });
-
-  if (selectedFarmId) {
-    query = query.eq("farm_id", selectedFarmId);
-  }
-
-  if (selectedCategory) {
-    query = query.eq("category", selectedCategory);
-  }
-
-  const { data: itemsData } = await query;
-  const items: InventoryItem[] = itemsData ?? [];
+  const items: InventoryItem[] = await findInventoryForUser(user.id, { farmId: selectedFarmId, category: selectedCategory });
 
   // Count stats
   const totalTypes = items.length;

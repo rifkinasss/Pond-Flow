@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/shared/types/database.types";
+import { db } from "@/shared/lib/sqlite/db";
+import { rateLimit } from "@/shared/lib/rate-limit";
 
 /**
  * POST /api/iot/telemetry
@@ -35,16 +35,14 @@ export async function POST(req: NextRequest) {
       { status: 401 }
     );
   }
+  const guard = rateLimit(`telemetry:${deviceCode}:${req.headers.get("x-forwarded-for") || "unknown"}`, 120, 60 * 1000);
+  if (!guard.allowed) return NextResponse.json({ error: "Too many telemetry requests" }, { status: 429, headers: { "Retry-After": String(guard.retryAfter) } });
 
-  // ── 2. Gunakan Supabase Service Role (bypass RLS) ──────────────────────
-  const supabase = createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
+  // ── 2. Backend lokal memiliki akses database langsung ─────────────────
+  const database = db();
 
   // ── 3. Cari & autentikasi device ──────────────────────────────────────
-  const { data: device, error: deviceErr } = await supabase
+  const { data: device, error: deviceErr } = await database
     .from("iot_sensor_devices")
     .select("id, user_id, pond_id, device_secret, status")
     .eq("device_code", deviceCode)
@@ -99,7 +97,7 @@ export async function POST(req: NextRequest) {
   }
 
   // ── 5. Simpan pembacaan ────────────────────────────────────────────────
-  const { data: reading, error: insertErr } = await supabase
+  const { data: reading, error: insertErr } = await database
     .from("water_quality_readings")
     .insert({
       user_id:          device.user_id,
@@ -112,7 +110,7 @@ export async function POST(req: NextRequest) {
       ammonia:          typeof ammonia === "number" ? ammonia : null,
       water_depth:      typeof water_depth === "number" ? water_depth : null,
       source:           "sensor",
-      raw_payload:      { ...body },
+      raw_payload:      JSON.stringify(body),
     })
     .select("id, recorded_at")
     .single();
@@ -126,7 +124,7 @@ export async function POST(req: NextRequest) {
   }
 
   // ── 6. Update status & last_ping device ───────────────────────────────
-  await supabase
+  await database
     .from("iot_sensor_devices")
     .update({
       last_ping:     new Date().toISOString(),

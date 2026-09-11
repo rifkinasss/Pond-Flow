@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/shared/lib/supabase/server";
+import { createClient } from "@/shared/lib/app/server";
+import { ownsPond } from "@/shared/lib/authorization";
 
 export async function createPond(formData: FormData) {
   const supabase = await createClient();
@@ -58,6 +59,8 @@ export async function deletePond(pondId: string) {
   } = await supabase.auth.getUser();
 
   if (!user) return { error: "Tidak terautentikasi" };
+
+  if (!ownsPond(user.id, pondId)) return { error: "Kolam tidak ditemukan atau Anda tidak memiliki akses" };
 
   // Delete pond
   const { error } = await supabase.from("ponds").delete().eq("id", pondId);

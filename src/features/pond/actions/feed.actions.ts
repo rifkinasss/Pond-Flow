@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/shared/lib/supabase/server";
+import { createClient } from "@/shared/lib/app/server";
+import { ownsCycle, ownsInventoryItem } from "@/shared/lib/authorization";
+import { sqlite } from "@/shared/lib/sqlite/db";
 
 export async function recordFeeding(formData: FormData) {
   const supabase = await createClient();
@@ -19,6 +21,7 @@ export async function recordFeeding(formData: FormData) {
   const notes = formData.get("notes") as string;
 
   if (!cycleId) return { error: "Siklus kolam tidak valid" };
+  if (!ownsCycle(user.id, cycleId)) return { error: "Siklus tidak ditemukan atau Anda tidak memiliki akses" };
 
   const amountKg = parseFloat(amountKgStr);
   if (isNaN(amountKg) || amountKg <= 0) {
@@ -28,35 +31,19 @@ export async function recordFeeding(formData: FormData) {
   const unitPrice = unitPriceStr ? parseFloat(unitPriceStr) : 0;
   const totalCost = amountKg * unitPrice;
 
-  // Insert feeding log
-  const { error: insertErr } = await supabase.from("feeding_logs").insert({
-    cycle_id: cycleId,
-    inventory_item_id: inventoryItemId && inventoryItemId !== "none" ? inventoryItemId : null,
-    feed_time: feedTime || new Date().toISOString(),
-    amount_kg: amountKg,
-    unit_price: unitPrice,
-    total_cost: totalCost,
-    notes: notes?.trim() || null,
-  });
+  if (inventoryItemId && inventoryItemId !== "none" && !ownsInventoryItem(user.id, inventoryItemId)) return { error: "Barang inventori tidak ditemukan atau Anda tidak memiliki akses" };
 
-  if (insertErr) return { error: insertErr.message };
-
-  // Automatically deduct stock from inventory if inventory item selected!
-  if (inventoryItemId && inventoryItemId !== "none") {
-    const { data: item } = await supabase
-      .from("inventory_items")
-      .select("stock_quantity")
-      .eq("id", inventoryItemId)
-      .single();
-
-    if (item) {
-      const newStock = Math.max(0, Number(item.stock_quantity) - amountKg);
-      await supabase
-        .from("inventory_items")
-        .update({ stock_quantity: newStock })
-        .eq("id", inventoryItemId);
-    }
-  }
+  try {
+    const saveFeeding = sqlite.transaction(() => {
+      if (inventoryItemId && inventoryItemId !== "none") {
+        const item = sqlite.prepare("SELECT stock_quantity FROM inventory_items WHERE id = ? AND user_id = ?").get(inventoryItemId, user.id) as { stock_quantity: number } | undefined;
+        if (!item) throw new Error("Barang inventori tidak ditemukan");
+        sqlite.prepare("UPDATE inventory_items SET stock_quantity = MAX(0, stock_quantity - ?) WHERE id = ? AND user_id = ?").run(amountKg, inventoryItemId, user.id);
+      }
+      sqlite.prepare("INSERT INTO feeding_logs (id, cycle_id, inventory_item_id, feed_time, amount_kg, unit_price, total_cost, notes) VALUES (lower(hex(randomblob(16))), ?, ?, ?, ?, ?, ?, ?)").run(cycleId, inventoryItemId && inventoryItemId !== "none" ? inventoryItemId : null, feedTime || new Date().toISOString(), amountKg, unitPrice, totalCost, notes?.trim() || null);
+    });
+    saveFeeding();
+  } catch (error) { return { error: error instanceof Error ? error.message : "Gagal menyimpan catatan pakan" }; }
 
   revalidatePath("/dashboard/ponds");
   revalidatePath("/dashboard/inventory");

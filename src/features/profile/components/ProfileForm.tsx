@@ -8,7 +8,7 @@ import { updateProfile, updatePassword } from "@/features/profile/actions/profil
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createClient } from "@/shared/lib/supabase/client";
+import { createClient } from "@/shared/lib/app/client";
 
 const AVATAR_OPTIONS = [
   { emoji: "🐟", label: "Ikan" },

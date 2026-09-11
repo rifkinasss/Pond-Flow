@@ -1,3 +1,4 @@
+/** Domain row types for PondFlow's local SQLite schema. */
 export type Json =
   | string
   | number
@@ -465,4 +466,3 @@ export function getParamStatus(
   }
   return "normal";
 }
-

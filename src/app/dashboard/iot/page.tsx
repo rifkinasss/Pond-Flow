@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { createClient } from "@/shared/lib/supabase/server";
+import { createClient } from "@/shared/lib/app/server";
 import { IotDeviceClientPage } from "./IotDeviceClientPage";
 import type { Pond, PondCycle, WaterQualityReading } from "@/shared/types/database.types";
 import { getLatestWaterQualityAllPonds } from "@/features/iot/actions/waterQuality.actions";

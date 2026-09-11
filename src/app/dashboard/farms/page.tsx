@@ -1,40 +1,23 @@
 import type { Metadata } from "next";
-import { createClient } from "@/shared/lib/supabase/server";
+import { getCurrentUser } from "@/shared/lib/auth";
+import { countPondsByFarm, findFarmsForUser } from "@/features/farm/repositories/farm.repository";
 import { MapPin, Fish } from "lucide-react";
 import { AddFarmDialog } from "@/features/farm/components/AddFarmDialog";
 import { FarmCard } from "@/features/farm/components/FarmCard";
-import type { Farm } from "@/shared/types/database.types";
 
 export const metadata: Metadata = { title: "Lokasi / Farm" };
 
 export default async function FarmsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
+  if (!user) return null;
 
   // Ambil semua farm milik user
-  const { data: farms } = (await supabase
-    .from("farms")
-    .select("*")
-    .eq("user_id", user!.id)
-    .order("created_at", { ascending: false })) as { data: Farm[] | null };
+  const farms = await findFarmsForUser(user.id);
 
   // Ambil jumlah kolam per farm sekaligus
-  const { data: pondCounts } = await supabase
-    .from("ponds")
-    .select("farm_id")
-    .in("farm_id", (farms ?? []).map((f) => f.id));
+  const pondCountMap = await countPondsByFarm(farms.map((f) => f.id));
 
-  const pondCountMap = (pondCounts ?? []).reduce<Record<string, number>>(
-    (acc, p) => {
-      acc[p.farm_id] = (acc[p.farm_id] ?? 0) + 1;
-      return acc;
-    },
-    {}
-  );
-
-  const farmList = farms ?? [];
+  const farmList = farms;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
